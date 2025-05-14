@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\layouts",
+    "\\src\\layouts\\dashboard",
+    "\\src\\pages",
+    "\\src\\routes",
+    "\\src\\routes\\hooks",
+    "\\src\\sections\\teacher\\view"
+  ],
+  "SelectedNode": "\\src\\layouts\\nav-config-dashboard.tsx",
+  "PreviewInSolutionExplorer": false
+}
