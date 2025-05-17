@@ -1,6 +1,7 @@
 import 'src/global.css';
 
 import { useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Fab from '@mui/material/Fab';
 
@@ -11,6 +12,15 @@ import { ThemeProvider } from 'src/theme/theme-provider';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 type AppProps = {
   children: React.ReactNode;
@@ -39,10 +49,12 @@ export default function App({ children }: AppProps) {
   );
 
   return (
-    <ThemeProvider>
-      {children}
-      {githubButton()}
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        {children}
+        {githubButton()}
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
