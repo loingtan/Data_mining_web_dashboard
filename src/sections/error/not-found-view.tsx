@@ -3,50 +3,57 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
-
-import { Logo } from 'src/components/logo';
-
 // ----------------------------------------------------------------------
 
 export function NotFoundView() {
-  return (
-    <>
-      <Logo sx={{ position: 'fixed', top: 20, left: 20 }} />
+  const router = useRouter();
 
-      <Container
+  return (
+    <Container>
+      <Box
         sx={{
-          py: 10,
-          flexGrow: 1,
+          py: 12,
+          maxWidth: 480,
+          mx: 'auto',
           display: 'flex',
+          minHeight: '100vh',
+          textAlign: 'center',
           alignItems: 'center',
           flexDirection: 'column',
           justifyContent: 'center',
         }}
       >
-        <Typography variant="h3" sx={{ mb: 2 }}>
+        <Typography variant="h3" sx={{ mb: 3 }}>
           Sorry, page not found!
         </Typography>
 
-        <Typography sx={{ color: 'text.secondary', maxWidth: 480, textAlign: 'center' }}>
-          Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be
-          sure to check your spelling.
+        <Typography sx={{ color: 'text.secondary' }}>
+          Sorry, we couldn&apos;t find the page you&apos;re looking for. Perhaps you&apos;ve
+          mistyped the URL? Be sure to check your spelling.
         </Typography>
 
         <Box
           component="img"
-          src="/assets/illustrations/illustration-404.svg"
+          src="/assets/illustrations/illustration_404.svg"
           sx={{
-            width: 320,
-            height: 'auto',
+            mx: 'auto',
+            height: 260,
             my: { xs: 5, sm: 10 },
           }}
         />
 
-        <Button component={RouterLink} href="/" size="large" variant="contained" color="inherit">
-          Go to home
+        <Button
+          size="large"
+          variant="contained"
+          component={RouterLink}
+          href="/"
+          onClick={() => router.push('/')}
+        >
+          Go to Home
         </Button>
-      </Container>
-    </>
+      </Box>
+    </Container>
   );
 }

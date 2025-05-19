@@ -1,6 +1,4 @@
-﻿import type { UserCompletion } from 'src/utils/api';
-
-import { useUserCompletion } from 'src/utils/api';
+﻿import { useUserCompletion } from 'src/utils/api';
 
 import { DashboardContent } from 'src/layouts/dashboard/content';
 
@@ -20,7 +18,7 @@ export default function TeacherPage() {
   return (
     <>
       <title>Teacher - Dashboard</title>
-      <TeacherDashboardView data={data as UserCompletion[]} />
+      <TeacherDashboardView data={data || []} />
     </>
   );
 }

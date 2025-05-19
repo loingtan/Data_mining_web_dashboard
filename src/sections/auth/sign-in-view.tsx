@@ -68,7 +68,8 @@ export function SignInView() {
         sx={{ mb: 3 }}
       />
 
-      <Button
+      {/* Tạm thời ẩn nút đăng nhập (login button) */}
+      {/* <Button
         fullWidth
         size="large"
         type="submit"
@@ -77,7 +78,7 @@ export function SignInView() {
         onClick={handleSignIn}
       >
         Sign in
-      </Button>
+      </Button> */}
     </Box>
   );
 
@@ -99,7 +100,7 @@ export function SignInView() {
             color: 'text.secondary',
           }}
         >
-          Don’t have an account?
+          Don&apos;t have an account?
           <Link variant="subtitle2" sx={{ ml: 0.5 }}>
             Get started
           </Link>
@@ -123,9 +124,6 @@ export function SignInView() {
       >
         <IconButton color="inherit">
           <Iconify width={22} icon="socials:google" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:github" />
         </IconButton>
         <IconButton color="inherit">
           <Iconify width={22} icon="socials:twitter" />

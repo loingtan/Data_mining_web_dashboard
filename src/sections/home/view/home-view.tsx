@@ -1,31 +1,33 @@
 ﻿import { useState, useEffect } from 'react';
 import {
-  ResponsiveContainer,
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
   Pie,
   Cell,
-  LineChart,
   Line,
-  CartesianGrid,
+  XAxis,
+  YAxis,
   Legend,
+  Tooltip,
+  BarChart,
+  PieChart,
+  LineChart,
+  CartesianGrid,
+  ResponsiveContainer,
 } from 'recharts';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
+import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
+import ListItem from '@mui/material/ListItem';
 import Container from '@mui/material/Container';
+import StarIcon from '@mui/icons-material/Star';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -191,7 +193,7 @@ export function HomeView() {
           avgProblemScore,
           totalVideoWatchTime,
         });
-      // eslint-disable-next-line @typescript-eslint/no-shadow
+        // eslint-disable-next-line @typescript-eslint/no-shadow
       } catch (error) {
         console.error('Error processing data:', error);
       }
@@ -267,7 +269,7 @@ export function HomeView() {
           {/* Header Section with enhanced styling */}
           <Box sx={{ py: 4, textAlign: 'center' }}>
             <Typography
-              variant="h3"
+              variant="h2" // Changed from h3 for more emphasis
               sx={{
                 mb: 2,
                 fontWeight: 'bold',
@@ -278,20 +280,193 @@ export function HomeView() {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              Chào mừng đến với Hệ thống Dự đoán Học tập 👋
+              Hệ Thống Dự Đoán Mức Độ Hoàn Thành Của Người Dùng Đối Với Khóa Học
             </Typography>
             <Typography
-              variant="h6"
+              variant="h5" // Changed from h6 for better hierarchy
               sx={{
                 color: 'text.secondary',
                 maxWidth: '800px',
                 mx: 'auto',
                 lineHeight: 1.6,
+                mb: 4, // Added margin bottom
               }}
             >
-              Phân tích và dự đoán hành vi học tập của học viên để tối ưu hóa trải nghiệm học tập
+              Ứng dụng công nghệ khai phá dữ liệu để phân tích và dự đoán hành vi học tập, nhằm nâng
+              cao chất lượng đào tạo và hỗ trợ sinh viên hiệu quả.
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+                lineHeight: 1.6,
+                mt: 2,
+                maxWidth: '800px',
+                mx: 'auto',
+              }}
+            >
+              Mô hình này có ứng dụng cụ thể trong lĩnh vực giáo dục trực tuyến. Nó giúp giáo viên
+              và quản lý trường học nhận diện học viên có nguy cơ bỏ học và phân bổ nguồn lực hỗ trợ
+              một cách hiệu quả, từ đó cải thiện tỷ lệ tốt nghiệp và chất lượng giáo dục trực tuyến.
             </Typography>
           </Box>
+
+          {/* Project Goal Section */}
+          <Card sx={cardStyles}>
+            <CardContent>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                Mục Tiêu Của Đề Tài
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                Đề tài này nhằm mục đích xây dựng một hệ thống thông minh có khả năng dự đoán sớm
+                kết quả học tập của sinh viên. Qua đó, hệ thống sẽ cung cấp những thông tin hữu ích
+                cho giảng viên và nhà trường để có những biện pháp can thiệp kịp thời, đồng thời gợi
+                ý cho sinh viên những lộ trình học tập phù hợp, góp phần cải thiện tỷ lệ hoàn thành
+                môn học và nâng cao thành tích tổng thể.
+              </Typography>
+            </CardContent>
+          </Card>
+
+          {/* Key Features Section */}
+          <Card sx={cardStyles}>
+            <CardContent>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                Tính Năng Nổi Bật
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Phân tích dữ liệu học tập đa chiều"
+                    secondary="Thu thập và xử lý dữ liệu từ nhiều nguồn khác nhau như điểm số, hoạt động trực tuyến, tương tác khóa học."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Mô hình dự đoán tiên tiến"
+                    secondary="Áp dụng các thuật toán Machine Learning hiện đại để đưa ra dự đoán chính xác về khả năng hoàn thành khóa học của sinh viên."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Giao diện trực quan, dễ sử dụng"
+                    secondary="Cung cấp dashboard và báo cáo chi tiết, giúp người dùng dễ dàng theo dõi và đưa ra quyết định."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Hỗ trợ cá nhân hóa lộ trình học tập"
+                    secondary="Đưa ra các gợi ý và cảnh báo sớm giúp sinh viên và giảng viên có những điều chỉnh phù hợp."
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+
+          {/* Urgency Section */}
+          <Card sx={cardStyles}>
+            <CardContent>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                Tính Cấp Thiết Của Đề Tài
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Giảm khả năng bỏ học của học viên"
+                    secondary="Việc dự đoán khả năng bỏ học sớm giúp các nhà giáo dục và nhà quản lý MOOCs có thể thực hiện các biện pháp can thiệp kịp thời để hỗ trợ học viên có nguy cơ bỏ học, từ đó tăng cơ hội cho họ hoàn thành khóa học."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Tối ưu hóa tài nguyên giáo dục"
+                    secondary="Việc hiểu và dự đoán mức độ hoàn thành khóa học giúp các tổ chức MOOCs tối ưu hóa việc sử dụng tài nguyên giáo dục, giảm thiểu lãng phí và tăng hiệu quả."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Cải thiện trải nghiệm học tập"
+                    secondary="Nhận biết và can thiệp sớm vào vấn đề bỏ học có thể cải thiện trải nghiệm học tập của các học viên bằng cách cung cấp hỗ trợ phù hợp và cá nhân hóa."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Nâng cao chất lượng khóa học"
+                    secondary="Việc phân tích và dự đoán mức độ hoàn thành khóa học cũng giúp các nhà giáo dục hiểu rõ hơn về những yếu tố nào ảnh hưởng đến sự thành công của một khóa học và từ đó cải thiện chất lượng của chúng."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Tiết kiệm chi phí và tăng hiệu quả"
+                    secondary="Bằng cách ngăn chặn hoặc giảm bớt tỷ lệ bỏ học, tổ chức MOOCs có thể tiết kiệm được chi phí về việc quảng cáo và tái học viên mới, cũng như tăng hiệu suất sử dụng tài nguyên giáo dục."
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+
+          {/* Novelty Section */}
+          <Card sx={cardStyles}>
+            <CardContent>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                Tính Mới Của Đề Tài
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Xem xét yếu tố về môi trường học tập"
+                    secondary="Trong môi trường học tập trực tuyến, nhóm không chỉ tập trung vào hành vi truy cập nội dung mà còn đưa vào xem xét các yếu tố môi trường như tuổi tác, bằng cấp và giới tính của sinh viên. Việc này mở ra cơ hội để hiểu rõ hơn về đa dạng của sinh viên và tác động của các yếu tố này đến trải nghiệm học tập của họ. Như vậy, việc tối ưu hóa quá trình giảng dạy và hỗ trợ sinh viên sẽ trở nên hiệu quả hơn thông qua việc cá nhân hóa và đáp ứng nhu cầu học tập cụ thể của từng sinh viên."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Kết hợp nhiều nguồn dữ liệu"
+                    secondary="Sử dụng thông tin từ nhiều nguồn dữ liệu khác nhau bao gồm hành vi sử dụng khóa học, thông tin người dùng và thông tin về khóa học, từ đó tạo ra một bức tranh toàn diện về người học và môi trường học tập."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <StarIcon sx={{ color: 'primary.main' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Trích xuất đặc trưng đa chiều"
+                    secondary="Đề xuất sử dụng các đặc trưng đa chiều như đặc trưng liên quan đến người dùng, đặc trưng liên quan đến khóa học và đặc trưng trích xuất từ lịch sử hành vi người dùng. Điều này giúp tạo ra một bức tranh phức tạp và đa chiều về hành vi học tập."
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
 
           {/* Quick Stats with enhanced cards */}
           <Box

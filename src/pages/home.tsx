@@ -42,7 +42,7 @@ const dataset = [
 export default function HomePage() {
   return (
     <>
-      <title>Home - Dashboard</title>
+      <title>Trang chủ - Hệ thống dự đoán kết quả học tập</title>
       <HomeView />
     </>
   );

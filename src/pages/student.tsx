@@ -1,52 +1,57 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useState } from 'react';
+
+import { Box } from '@mui/system';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
+import { useUserCompletion } from 'src/utils/api';
 
 import { DashboardContent } from 'src/layouts/dashboard/content';
 
 import { StudentDashboardView } from 'src/sections/student/view/student-dashboard-view';
 
-// Tạm thời hardcode, sau này bạn có thể lấy từ context hoặc localStorage
-const studentId = '12345'; // Thay bằng ID học viên thật
-
 export default function StudentPage() {
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const { data, isLoading, error } = useUserCompletion();
+  const [selectedId, setSelectedId] = useState('');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('https://pnqljxlcqfeubrtfrbvv.supabase.co/functions/v1/query-user-completion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBucWxqeGxjcWZldWJydGZyYnZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMzg1MjgsImV4cCI6MjA2MjcxNDUyOH0.3i_FHI-DFUXQUdSOuZFtxdH4GwRzv8FVb-9jD9G7TYM'
-                    },
-                    body: JSON.stringify({ name: 'Functions' }),
-                });
+  if (isLoading) {
+    return <DashboardContent>Đang tải dữ liệu học viên...</DashboardContent>;
+  }
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch data from API');
-                }
+  if (error) {
+    return <DashboardContent>Error loading data</DashboardContent>;
+  }
 
-                const result = await response.json();
-                setData(result);
-            } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  // Lấy danh sách các studentId duy nhất
+  const studentIds = Array.isArray(data) ? Array.from(new Set(data.map((d) => d.user_id))) : [];
 
-        fetchData();
-    }, []);
+  // Nếu chưa chọn, mặc định chọn studentId đầu tiên
+  const currentId = selectedId || (studentIds.length > 0 ? studentIds[0] : '');
 
-    if (loading) {
-        return <DashboardContent>Đang tải dữ liệu học viên...</DashboardContent>;
-    }
+  if (!currentId) {
+    return <DashboardContent>Không có dữ liệu học viên.</DashboardContent>;
+  }
 
-    return (
-        <>
-            <title>Student - Dashboard</title>
-            <StudentDashboardView data={data} studentId={studentId} />
-        </>
-    );
+  return (
+    <>
+      <title>Student - Dashboard</title>
+      <Box sx={{ mb: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel id="student-select-label">Chọn học viên</InputLabel>
+          <Select
+            labelId="student-select-label"
+            value={currentId}
+            label="Chọn học viên"
+            onChange={(e) => setSelectedId(e.target.value)}
+          >
+            {studentIds.map((id) => (
+              <MenuItem key={id} value={id}>
+                {id}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+      <StudentDashboardView data={data || []} studentId={currentId} />
+    </>
+  );
 }
