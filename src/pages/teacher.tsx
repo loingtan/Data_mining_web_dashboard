@@ -1,11 +1,19 @@
-﻿import { useUserCompletion } from 'src/utils/api';
+﻿import { useCourses, useUserActivity } from 'src/utils/api';
 
 import { DashboardContent } from 'src/layouts/dashboard/content';
 
 import { TeacherDashboardView } from 'src/sections/teacher/view/teacher-dashboard-view';
 
 export default function TeacherPage() {
-  const { data, isLoading, error } = useUserCompletion();
+  const { data: coursesResponse, isLoading: isLoadingCourses, error: errorCourses } = useCourses();
+  const {
+    data: userActivityResponse,
+    isLoading: isLoadingActivity,
+    error: errorActivity,
+  } = useUserActivity();
+
+  const isLoading = isLoadingCourses || isLoadingActivity;
+  const error = errorCourses || errorActivity;
 
   if (isLoading) {
     return <DashboardContent>Đang tải dữ liệu...</DashboardContent>;
@@ -15,10 +23,46 @@ export default function TeacherPage() {
     return <DashboardContent>Error loading data</DashboardContent>;
   }
 
+  // Transform user activity data for teacher dashboard
+  const activities = userActivityResponse || [];
+  const teacherData = activities.map((activity) => {
+    const course = coursesResponse?.courses.find((c) => c.id === activity.course_id);
+
+    // Calculate total video watch time across all weeks
+    const totalVideoTime = [
+      activity.total_video_watching_week1,
+      activity.total_video_watching_week2,
+      activity.total_video_watching_week3,
+      activity.total_video_watching_week4,
+    ].reduce((sum, time) => (sum || 0) + (time || 0), 0);
+
+    // Calculate total problems done across all weeks
+    const totalProblems = [
+      activity.problem_done_week1,
+      activity.problem_done_week2,
+      activity.problem_done_week3,
+      activity.problem_done_week4,
+    ].reduce((sum, problems) => (sum || 0) + (problems || 0), 0);
+
+    return {
+      course_id: activity.course_id,
+      course_name: course?.name || `Course ${activity.course_id}`,
+      user_id: activity.user_id,
+      student_name: `Student ${activity.user_id}`,
+      student_email: `student@example.com`,
+      video_completion: (activity.completion || 0).toFixed(2),
+      problem_completion: (
+        (totalProblems || 0) / Math.max(activity.course_num_problems || 1, 1)
+      ).toFixed(2),
+      user_total_video_views: totalVideoTime || 0,
+      user_total_video_watch_time: totalVideoTime || 0,
+    };
+  });
+
   return (
     <>
       <title>Teacher - Dashboard</title>
-      <TeacherDashboardView data={data || []} />
+      <TeacherDashboardView data={teacherData} />
     </>
   );
 }

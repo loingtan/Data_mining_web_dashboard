@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
   Pie,
@@ -9,282 +9,266 @@ import {
   Tooltip,
   BarChart,
   PieChart,
+  CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
 
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import {
-  Box,
-  Grid,
-  Card,
-  Table,
-  Paper,
-  TableRow,
-  TableBody,
-  TableCell,
-  TableHead,
-  Typography,
-  CardContent,
-  TableContainer,
-} from '@mui/material';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import InputLabel from '@mui/material/InputLabel';
+import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
+import FormControl from '@mui/material/FormControl';
+import TableContainer from '@mui/material/TableContainer';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+interface TeacherData {
+  course_id: string;
+  course_name: string;
+  user_id: string;
+  student_name: string;
+  student_email: string;
+  video_completion: string;
+  problem_completion: string;
+  user_total_video_views: number;
+  user_total_video_watch_time: number;
+}
+
 interface Props {
-  data: any[]; // mỗi phần tử là 1 dòng từ dataset
+  data: TeacherData[];
 }
 
 export function TeacherDashboardView({ data }: Props) {
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  // Get unique courses
+  const courses = useMemo(() => {
+    const courseMap = new Map();
+    data.forEach((item) => {
+      if (!courseMap.has(item.course_id)) {
+        courseMap.set(item.course_id, item.course_name);
+      }
+    });
+    return Array.from(courseMap.entries()).map(([id, name]) => ({ id, name }));
+  }, [data]);
 
-  const courses = useMemo(() => Array.from(new Set(data.map((d) => d.course_id))), [data]);
-  console.log(data);
-  const filtered = useMemo(
-    () => (selectedCourse ? data.filter((d) => d.course_id === selectedCourse) : data),
+  const [selectedCourse, setSelectedCourse] = useState<string>(courses[0]?.id || '');
+
+  // Filter data by selected course
+  const courseData = useMemo(
+    () => data.filter((item) => item.course_id === selectedCourse),
     [data, selectedCourse]
   );
 
-  const courseStats = useMemo(() => {
-    if (filtered.length === 0) return null;
+  // Calculate statistics
+  const stats = useMemo(() => {
+    if (courseData.length === 0) {
+      return {
+        totalStudents: 0,
+        avgVideoCompletion: 0,
+        avgProblemCompletion: 0,
+        totalVideoTime: 0,
+      };
+    }
 
-    const totalStudents = filtered.length;
+    const totalStudents = courseData.length;
     const avgVideoCompletion =
-      filtered.reduce((sum, d) => sum + parseFloat(d.video_completion), 0) / totalStudents;
+      courseData.reduce((sum, item) => sum + parseFloat(item.video_completion), 0) / totalStudents;
     const avgProblemCompletion =
-      filtered.reduce((sum, d) => sum + parseFloat(d.problem_completion), 0) / totalStudents;
-    const avgWatchTime =
-      filtered.reduce((sum, d) => sum + parseFloat(d.user_total_video_watch_time), 0) /
+      courseData.reduce((sum, item) => sum + parseFloat(item.problem_completion), 0) /
       totalStudents;
-    const avgProblemAttempts =
-      filtered.reduce((sum, d) => sum + parseFloat(d.avg_problem_attempts_per_student), 0) /
-      totalStudents;
+    const totalVideoTime = courseData.reduce(
+      (sum, item) => sum + item.user_total_video_watch_time,
+      0
+    );
 
     return {
       totalStudents,
-      avgVideoCompletion,
-      avgProblemCompletion,
-      avgWatchTime,
-      avgProblemAttempts,
+      avgVideoCompletion: Math.round(avgVideoCompletion * 100),
+      avgProblemCompletion: Math.round(avgProblemCompletion * 100),
+      totalVideoTime,
     };
-  }, [filtered]);
+  }, [courseData]);
 
-  // Tổng lượt xem video (giả sử trường user_total_video_views)
-  const totalVideoViews = useMemo(
-    () => filtered.reduce((sum, d) => sum + (parseInt(d.user_total_video_views) || 0), 0),
-    [filtered]
-  );
-
-  // Phân phối số học sinh theo mức độ hoàn thành video
+  // Prepare chart data for completion distribution
   const completionDistribution = useMemo(() => {
-    // Các mức: <50%, 50-80%, 80-100%, 100%
-    const dist = [0, 0, 0, 0];
-    filtered.forEach((d) => {
-      const percent = parseFloat(d.video_completion) * 100;
-      if (percent < 50) dist[0]++;
-      else if (percent < 80) dist[1]++;
-      else if (percent < 100) dist[2]++;
-      else dist[3]++;
-    });
-    return [
-      { name: '<50%', value: dist[0] },
-      { name: '50-80%', value: dist[1] },
-      { name: '80-99%', value: dist[2] },
-      { name: '100%', value: dist[3] },
+    const ranges = [
+      { name: '0-25%', min: 0, max: 0.25, count: 0 },
+      { name: '26-50%', min: 0.25, max: 0.5, count: 0 },
+      { name: '51-75%', min: 0.5, max: 0.75, count: 0 },
+      { name: '76-100%', min: 0.75, max: 1, count: 0 },
     ];
-  }, [filtered]);
+
+    courseData.forEach((item) => {
+      const completion = parseFloat(item.video_completion);
+      const range = ranges.find((r) => completion >= r.min && completion <= r.max);
+      if (range) range.count++;
+    });
+
+    return ranges;
+  }, [courseData]);
 
   return (
     <DashboardContent>
-      <Box sx={{ mb: 5 }}>
-        <Typography variant="h4">Dashboard Giảng viên</Typography>
-        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-          Thống kê hoạt động học tập của sinh viên theo từng khóa học.
-        </Typography>
+      <Typography variant="h4" gutterBottom>
+        Teacher Dashboard
+      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel>Select Course</InputLabel>
+          <Select
+            value={selectedCourse}
+            label="Select Course"
+            onChange={(e) => setSelectedCourse(e.target.value)}
+          >
+            {courses.map((course) => (
+              <MenuItem key={course.id} value={course.id}>
+                {course.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
-
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="subtitle1">Chọn khóa học</Typography>
-        <Select
-          value={selectedCourse}
-          onChange={(e) => setSelectedCourse(e.target.value)}
-          fullWidth
-          displayEmpty
-        >
-          <MenuItem value="">-- Chọn khóa học --</MenuItem>
-          {courses.map((courseId) => (
-            <MenuItem key={courseId} value={courseId}>
-              {courseId}
-            </MenuItem>
-          ))}
-        </Select>
-      </Box>
-
-      {courseStats && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Tổng số sinh viên</Typography>
-                <Typography variant="h4">{courseStats.totalStudents}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Tỉ lệ hoàn thành video TB</Typography>
-                <Typography variant="h4">
-                  {(courseStats.avgVideoCompletion * 100).toFixed(1)}%
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Tỉ lệ hoàn thành bài tập TB</Typography>
-                <Typography variant="h4">
-                  {(courseStats.avgProblemCompletion * 100).toFixed(1)}%
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Thời lượng xem video TB</Typography>
-                <Typography variant="h4">{courseStats.avgWatchTime.toFixed(1)}s</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Tổng lượt xem video */}
-          <Grid item xs={12} md={6} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Tổng lượt xem video</Typography>
-                <Typography variant="h4">{totalVideoViews}</Typography>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart
-                    data={filtered.map((d) => ({
-                      name: d.student_name || d.student_id,
-                      views: parseInt(d.user_total_video_views) || 0,
-                    }))}
-                  >
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="views" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Biểu đồ pie phân phối mức độ hoàn thành video */}
-          <Grid item xs={12} md={6} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Phân phối học viên theo mức độ hoàn thành video
-                </Typography>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={completionDistribution}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={70}
-                      label
-                    >
-                      {completionDistribution.map((entry, idx) => (
-                        <Cell key={`cell-${idx}`} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Bảng danh sách học viên */}
-          <Grid item xs={12} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Danh sách học viên
-                </Typography>
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>STT</TableCell>
-                        <TableCell>Họ tên</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Hoàn thành video (%)</TableCell>
-                        <TableCell>Hoàn thành bài tập (%)</TableCell>
-                        <TableCell>Lượt xem video</TableCell>
-                        <TableCell>Thời lượng xem (s)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filtered.map((row, idx) => (
-                        <TableRow key={row.student_id || row.user_id || idx}>
-                          <TableCell>{idx + 1}</TableCell>
-                          <TableCell>{row.student_name || row.user_id || '-'}</TableCell>
-                          <TableCell>{row.student_email || '-'}</TableCell>
-                          <TableCell>
-                            {((parseFloat(row.video_completion) || 0) * 100).toFixed(1)}
-                          </TableCell>
-                          <TableCell>
-                            {((parseFloat(row.problem_completion) || 0) * 100).toFixed(1)}
-                          </TableCell>
-                          <TableCell>{row.user_total_video_views || 0}</TableCell>
-                          <TableCell>{row.user_total_video_watch_time || 0}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Biểu đồ so sánh hoàn thành */}
-          <Grid item xs={12} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Biểu đồ so sánh hoàn thành
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
-                    data={[
-                      { name: 'Video', value: courseStats.avgVideoCompletion * 100 },
-                      { name: 'Bài tập', value: courseStats.avgProblemCompletion * 100 },
-                    ]}
-                  >
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
+      {/* Statistics Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        {' '}
+        <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Total Students
+              </Typography>
+              <Typography variant="h4">{stats.totalStudents}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>{' '}
+        <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Avg Video Completion
+              </Typography>
+              <Typography variant="h4">{stats.avgVideoCompletion}%</Typography>
+            </CardContent>
+          </Card>
+        </Grid>{' '}
+        <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Avg Problem Completion
+              </Typography>
+              <Typography variant="h4">{stats.avgProblemCompletion}%</Typography>
+            </CardContent>
+          </Card>
+        </Grid>{' '}
+        <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Total Video Time (hours)
+              </Typography>
+              <Typography variant="h4">{Math.round(stats.totalVideoTime / 3600)}</Typography>
+            </CardContent>
+          </Card>
         </Grid>
-      )}
+      </Grid>{' '}
+      {/* Charts */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={6} {...({} as any)}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Video Completion Distribution
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={completionDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="count"
+                  label={({ name, count }) => `${name}: ${count}`}
+                >
+                  {completionDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </Paper>{' '}
+        </Grid>
+        <Grid item xs={12} md={6} {...({} as any)}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Student Performance Comparison
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={courseData.slice(0, 10)}>
+                {' '}
+                {/* Show top 10 students */}
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="student_name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="video_completion" fill="#8884d8" name="Video Completion" />
+                <Bar dataKey="problem_completion" fill="#82ca9d" name="Problem Completion" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+      </Grid>
+      {/* Student Details Table */}
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Student Details
+        </Typography>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Student Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell align="right">Video Completion</TableCell>
+                <TableCell align="right">Problem Completion</TableCell>
+                <TableCell align="right">Video Views</TableCell>
+                <TableCell align="right">Watch Time (min)</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {courseData.map((student) => (
+                <TableRow key={student.user_id}>
+                  <TableCell>{student.student_name}</TableCell>
+                  <TableCell>{student.student_email}</TableCell>
+                  <TableCell align="right">
+                    {(parseFloat(student.video_completion) * 100).toFixed(1)}%
+                  </TableCell>
+                  <TableCell align="right">
+                    {(parseFloat(student.problem_completion) * 100).toFixed(1)}%
+                  </TableCell>
+                  <TableCell align="right">{student.user_total_video_views}</TableCell>
+                  <TableCell align="right">
+                    {Math.round(student.user_total_video_watch_time / 60)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </DashboardContent>
   );
 }

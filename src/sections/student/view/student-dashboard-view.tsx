@@ -1,14 +1,19 @@
-﻿import { useMemo, useState } from 'react';
+﻿import type { UserActivity } from 'src/utils/api';
+
+import { useMemo, useState } from 'react';
 import {
   Bar,
   Pie,
   Cell,
+  Line,
   XAxis,
   YAxis,
   Legend,
   Tooltip,
   BarChart,
   PieChart,
+  LineChart,
+  CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
 
@@ -32,14 +37,13 @@ import { DashboardContent } from 'src/layouts/dashboard';
 const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 interface Props {
-  data: any[];
+  data: UserActivity[];
   studentId: string;
 }
 
 export function StudentDashboardView({ data, studentId }: Props) {
   const studentData = useMemo(() => data.filter((d) => d.user_id === studentId), [data, studentId]);
 
-  const studentInfo = studentData[0] || {};
   const courses = useMemo(
     () => Array.from(new Set(studentData.map((d) => d.course_id))),
     [studentData]
@@ -47,22 +51,67 @@ export function StudentDashboardView({ data, studentId }: Props) {
   const [selectedCourse, setSelectedCourse] = useState<string>(courses[0] || '');
 
   const courseDetail = useMemo(
-    () => studentData.find((d) => d.course_id === selectedCourse) || {},
+    () => studentData.find((d) => d.course_id === selectedCourse),
     [studentData, selectedCourse]
   );
 
+  // Calculate completion percentage
+  const completionPercentage = (courseDetail?.completion || 0) * 100;
+
+  // Prepare completion pie chart data
   const completionPie = [
-    { name: 'Video', value: (parseFloat(courseDetail.video_completion) || 0) * 100 },
-    { name: 'Bài tập', value: (parseFloat(courseDetail.problem_completion) || 0) * 100 },
+    { name: 'Hoàn thành', value: completionPercentage },
+    { name: 'Chưa hoàn thành', value: 100 - completionPercentage },
   ];
 
-  const videoViewsBar = courses.map((courseId) => {
-    const d = studentData.find((x) => x.course_id === courseId) || {};
-    return {
-      name: courseId,
-      watchTime: parseFloat(d.user_total_video_watch_time) || 0,
-    };
-  });
+  // Prepare weekly progress data
+  const weeklyProgress = [
+    {
+      week: 'Tuần 1',
+      exercises: courseDetail?.ex_do_week1 || 0,
+      problems: courseDetail?.problem_done_week1 || 0,
+      score: courseDetail?.total_score_week1 || 0,
+      videoTime: courseDetail?.total_video_watching_week1 || 0,
+    },
+    {
+      week: 'Tuần 2',
+      exercises: courseDetail?.ex_do_week2 || 0,
+      problems: courseDetail?.problem_done_week2 || 0,
+      score: courseDetail?.total_score_week2 || 0,
+      videoTime: courseDetail?.total_video_watching_week2 || 0,
+    },
+    {
+      week: 'Tuần 3',
+      exercises: courseDetail?.ex_do_week3 || 0,
+      problems: courseDetail?.problem_done_week3 || 0,
+      score: courseDetail?.total_score_week3 || 0,
+      videoTime: courseDetail?.total_video_watching_week3 || 0,
+    },
+    {
+      week: 'Tuần 4',
+      exercises: courseDetail?.ex_do_week4 || 0,
+      problems: courseDetail?.problem_done_week4 || 0,
+      score: courseDetail?.total_score_week4 || 0,
+      videoTime: courseDetail?.total_video_watching_week4 || 0,
+    },
+  ];
+
+  // Course comparison data
+  const courseComparison = studentData.map((activity) => ({
+    course: activity.course_id,
+    completion: (activity.completion || 0) * 100,
+    videoTime: parseFloat(activity.course_total_video_watch_time) || 0,
+  }));
+
+  // Video views bar chart data
+  const videoViewsBar = useMemo(
+    () =>
+      courseComparison.map((course) => ({
+        name: course.course,
+        watchTime: course.videoTime,
+      })),
+    [courseComparison]
+  );
 
   return (
     <DashboardContent>
@@ -79,8 +128,8 @@ export function StudentDashboardView({ data, studentId }: Props) {
           <Typography variant="h6" gutterBottom>
             Thông tin học viên
           </Typography>
-          <Typography>Họ tên: {studentInfo.student_name || studentInfo.user_id || '-'}</Typography>
-          <Typography>Mã học viên: {studentInfo.user_id || '-'}</Typography>
+          <Typography>Họ tên: {courseDetail?.user_id || studentId || '-'}</Typography>
+          <Typography>Mã học viên: {courseDetail?.user_id || studentId || '-'}</Typography>
         </CardContent>
       </Card>
 
@@ -106,9 +155,9 @@ export function StudentDashboardView({ data, studentId }: Props) {
         <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
-              <Typography variant="h6">Tỉ lệ hoàn thành video</Typography>
+              <Typography variant="h6">Tỉ lệ hoàn thành khóa học</Typography>
               <Typography variant="h4">
-                {((parseFloat(courseDetail.video_completion) || 0) * 100).toFixed(1)}%
+                {((courseDetail?.completion || 0) * 100).toFixed(1)}%
               </Typography>
             </CardContent>
           </Card>
@@ -116,26 +165,24 @@ export function StudentDashboardView({ data, studentId }: Props) {
         <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
-              <Typography variant="h6">Tỉ lệ hoàn thành bài tập</Typography>
-              <Typography variant="h4">
-                {((parseFloat(courseDetail.problem_completion) || 0) * 100).toFixed(1)}%
-              </Typography>
+              <Typography variant="h6">Số bài tập tuần 1</Typography>
+              <Typography variant="h4">{courseDetail?.problem_done_week1 || 0}</Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
-              <Typography variant="h6">Thời lượng xem video</Typography>
-              <Typography variant="h4">{courseDetail.user_total_video_watch_time || 0}s</Typography>
+              <Typography variant="h6">Thời lượng xem video tuần 1</Typography>
+              <Typography variant="h4">{courseDetail?.total_video_watching_week1 || 0}s</Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
-              <Typography variant="h6">Số video đã xem</Typography>
-              <Typography variant="h4">{courseDetail.video_watched || 0}</Typography>
+              <Typography variant="h6">Số video tuần 1</Typography>
+              <Typography variant="h4">{courseDetail?.course_num_videos || 0}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -207,22 +254,20 @@ export function StudentDashboardView({ data, studentId }: Props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {courses.map((courseId) => {
+              {/* {courses.map((courseId) => {
                 const d = studentData.find((x) => x.course_id === courseId) || {};
                 return (
                   <TableRow key={courseId}>
                     <TableCell>{courseId}</TableCell>
+                    <TableCell>{((d.completion || 0) * 100).toFixed(1)}</TableCell>
                     <TableCell>
-                      {((parseFloat(d.video_completion) || 0) * 100).toFixed(1)}
-                    </TableCell>
-                    <TableCell>
-                      {((parseFloat(d.problem_completion) || 0) * 100).toFixed(1)}
+                      {d.problem_completion ? parseFloat(d.problem_completion) * 100 : 0}
                     </TableCell>
                     <TableCell>{d.user_total_video_watch_time || 0}</TableCell>
                     <TableCell>{d.video_watched || 0}</TableCell>
                   </TableRow>
                 );
-              })}
+              })} */}
             </TableBody>
           </Table>
         </TableContainer>

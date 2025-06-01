@@ -1,17 +1,30 @@
 ﻿import { useState } from 'react';
 
 import { Box } from '@mui/system';
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
-import { useUserCompletion } from 'src/utils/api';
+import { useCourses, useUserProfiles, useUserActivity } from 'src/utils/api';
 
 import { DashboardContent } from 'src/layouts/dashboard/content';
 
 import { StudentDashboardView } from 'src/sections/student/view/student-dashboard-view';
 
 export default function StudentPage() {
-  const { data, isLoading, error } = useUserCompletion();
+  const {
+    data: userProfilesResponse,
+    isLoading: isLoadingUsers,
+    error: errorUsers,
+  } = useUserProfiles();
+  const { isLoading: isLoadingCourses, error: errorCourses } = useCourses();
+  const {
+    data: userActivityResponse,
+    isLoading: isLoadingActivity,
+    error: errorActivity,
+  } = useUserActivity();
   const [selectedId, setSelectedId] = useState('');
+
+  const isLoading = isLoadingUsers || isLoadingCourses || isLoadingActivity;
+  const error = errorUsers || errorCourses || errorActivity;
 
   if (isLoading) {
     return <DashboardContent>Đang tải dữ liệu học viên...</DashboardContent>;
@@ -21,37 +34,48 @@ export default function StudentPage() {
     return <DashboardContent>Error loading data</DashboardContent>;
   }
 
-  // Lấy danh sách các studentId duy nhất
-  const studentIds = Array.isArray(data) ? Array.from(new Set(data.map((d) => d.user_id))) : [];
+  const users = userProfilesResponse?.profiles || [];
+  const activities = userActivityResponse || [];
 
-  // Nếu chưa chọn, mặc định chọn studentId đầu tiên
+  // Get list of unique student IDs from activities
+  const studentIds = Array.from(new Set(activities.map((activity) => activity.user_id)));
+
+  // If not selected, default to first studentId
   const currentId = selectedId || (studentIds.length > 0 ? studentIds[0] : '');
 
   if (!currentId) {
     return <DashboardContent>Không có dữ liệu học viên.</DashboardContent>;
   }
 
+  // Filter activities for the selected student and map to UserActivity format
+  const studentActivities = activities.filter((activity) => activity.user_id === currentId);
+
   return (
     <>
       <title>Student - Dashboard</title>
-      <Box sx={{ mb: 3 }}>
-        <FormControl fullWidth>
-          <InputLabel id="student-select-label">Chọn học viên</InputLabel>
-          <Select
-            labelId="student-select-label"
-            value={currentId}
-            label="Chọn học viên"
-            onChange={(e) => setSelectedId(e.target.value)}
-          >
-            {studentIds.map((id) => (
-              <MenuItem key={id} value={id}>
-                {id}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-      <StudentDashboardView data={data || []} studentId={currentId} />
+      <DashboardContent>
+        <Box sx={{ mb: 3 }}>
+          <FormControl fullWidth>
+            <InputLabel id="student-select-label">Chọn học viên</InputLabel>
+            <Select
+              labelId="student-select-label"
+              value={currentId}
+              label="Chọn học viên"
+              onChange={(e) => setSelectedId(e.target.value as string)}
+            >
+              {studentIds.map((id) => {
+                const user = users.find((u) => u.user_id === id);
+                return (
+                  <MenuItem key={id} value={id}>
+                    {user?.name || id}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+        </Box>
+        <StudentDashboardView data={studentActivities} studentId={currentId} />
+      </DashboardContent>
     </>
   );
 }

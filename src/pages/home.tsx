@@ -42,7 +42,10 @@ const dataset = [
 export default function HomePage() {
   return (
     <>
-      <title>Trang chủ - Hệ thống dự đoán kết quả học tập</title>
+      <title>
+        • Nền Tảng Dự Đoán Mức Độ Hoàn Thành Của Học Viên Và Hỗ Trợ Quyết Định Cho Giáo Dục Trực
+        Tuyến
+      </title>
       <HomeView />
     </>
   );

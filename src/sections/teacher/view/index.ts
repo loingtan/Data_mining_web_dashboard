@@ -1,1 +1,1 @@
-export * from './teacher-dashboard-view';
+export { TeacherDashboardView } from './teacher-dashboard-view';

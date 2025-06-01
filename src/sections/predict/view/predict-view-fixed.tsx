@@ -1,5 +1,3 @@
-import type { PredictData } from 'src/pages/predict';
-
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -19,13 +17,37 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 
+interface UserActivity {
+  student_id: string;
+  student_name: string;
+  course_code: string;
+  course_name: string;
+  completion: number;
+  // Add other properties that are used in the component
+  video_completion_rate: number;
+  problem_completion_rate: number;
+  total_time_spent: number;
+  avg_session_duration: number;
+  course_num_students: number;
+  course_avg_completion: number;
+  week_1_video_time?: number;
+  week_1_problem_score?: number;
+  week_2_video_time?: number;
+  week_2_problem_score?: number;
+  week_3_video_time?: number;
+  week_3_problem_score?: number;
+  week_4_video_time?: number;
+  week_4_problem_score?: number;
+  // Add more week properties as needed
+}
+
 type Props = {
-  data: PredictData[];
+  data: UserActivity[];
 };
 
 export function PredictView({ data }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
-  const [selectedData, setSelectedData] = useState<PredictData | null>(null);
+  const [selectedData, setSelectedData] = useState<UserActivity | null>(null);
 
   useEffect(() => {
     if (selectedStudent && data.length > 0) {
@@ -33,18 +55,15 @@ export function PredictView({ data }: Props) {
       setSelectedData(studentData || null);
     }
   }, [selectedStudent, data]);
+
   // Calculate weekly data for the selected student
   const getWeeklyData = () => {
     if (!selectedData) return [];
 
     const weeks = [];
     for (let i = 1; i <= 12; i++) {
-      const videoTimeKey = `week_${i}_video_time` as keyof PredictData;
-      const problemScoreKey = `week_${i}_problem_score` as keyof PredictData;
-
-      const videoTime = (selectedData[videoTimeKey] as number) || 0;
-      const problemScore = (selectedData[problemScoreKey] as number) || 0;
-
+      const videoTime = (selectedData as any)[`week_${i}_video_time`] || 0;
+      const problemScore = (selectedData as any)[`week_${i}_problem_score`] || 0;
       weeks.push({
         week: i,
         videoTime: Number(videoTime) || 0,
