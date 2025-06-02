@@ -50,7 +50,7 @@ export function PredictNewView() {
         setError(null);
       } else {
         setSelectedPrediction(null);
-        setError('No test prediction found for this user-course combination');
+        setError('Không tìm thấy dự đoán kiểm tra cho tổ hợp người dùng-khóa học này');
       }
     } else {
       setSelectedPrediction(null);
@@ -82,31 +82,31 @@ export function PredictNewView() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
-        Prediction
+        Dự Đoán
       </Typography>{' '}
       {/* Form for selecting prediction parameters */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
           <Typography variant="h6" sx={{ mb: 3 }}>
-            Select Prediction Parameters
+            Chọn Tham Số Dự Đoán
           </Typography>{' '}
           <Grid container spacing={3}>
             {' '}
             {/* User Selection */}
             <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
-                <InputLabel>User</InputLabel>
+                <InputLabel>Người Dùng</InputLabel>
                 <Select
                   value={selectedUserId}
-                  label="User"
+                  label="Người Dùng"
                   onChange={(e) => setSelectedUserId(e.target.value)}
                 >
                   <MenuItem value="">
-                    <em>Select a user</em>
+                    <em>Chọn một người dùng</em>
                   </MenuItem>
                   {uniqueUserIds.map((userId) => (
                     <MenuItem key={userId} value={userId}>
-                      User {userId}
+                      Người dùng {userId}
                     </MenuItem>
                   ))}
                 </Select>
@@ -115,36 +115,36 @@ export function PredictNewView() {
             {/* Course Selection */}
             <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth disabled={!selectedUserId || isLoading}>
-                <InputLabel>Course</InputLabel>
+                <InputLabel>Khóa Học</InputLabel>
                 <Select
                   value={selectedCourseId}
-                  label="Course"
+                  label="Khóa Học"
                   onChange={(e) => setSelectedCourseId(e.target.value)}
                 >
                   <MenuItem value="">
                     <em>
                       {selectedUserId
                         ? availableCourseIds.length === 0
-                          ? 'No courses available'
-                          : 'Select a course'
-                        : 'Select a user first'}
+                          ? 'Không có khóa học nào'
+                          : 'Chọn một khóa học'
+                        : 'Chọn người dùng trước'}
                     </em>
                   </MenuItem>
                   {availableCourseIds.map((courseId) => (
                     <MenuItem key={courseId} value={courseId}>
-                      Course {courseId}
+                      Khóa học {courseId}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-          </Grid>
+          </Grid>{' '}
           {/* Loading indicators */}
           {isLoading && (
             <Box sx={{ mt: 3 }}>
               <LinearProgress />
               <Typography variant="body2" sx={{ mt: 1, textAlign: 'center' }}>
-                Loading data...
+                Đang tải dữ liệu...
               </Typography>
             </Box>
           )}{' '}
@@ -152,21 +152,21 @@ export function PredictNewView() {
           {!isLoading && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="body2" color="text.secondary">
-                Status: {selectedUserId ? '✓ User selected' : '○ Select user'} •{' '}
+                Trạng thái: {selectedUserId ? '✓ Đã chọn người dùng' : '○ Chọn người dùng'} •{' '}
                 {selectedCourseId
-                  ? '✓ Course selected'
+                  ? '✓ Đã chọn khóa học'
                   : selectedUserId
-                    ? '○ Select course'
-                    : '○ Select course (user required)'}
+                    ? '○ Chọn khóa học'
+                    : '○ Chọn khóa học (cần chọn người dùng)'}
               </Typography>
               {selectedUserId && selectedCourseId && (
                 <Typography variant="body2" sx={{ mt: 1 }} color="primary">
-                  Ready to view prediction results
+                  Sẵn sàng xem kết quả dự đoán
                 </Typography>
               )}
               {selectedUserId && availableCourseIds.length > 0 && !selectedCourseId && (
                 <Typography variant="body2" sx={{ mt: 1 }} color="info.main">
-                  {availableCourseIds.length} course(s) available for this user
+                  {availableCourseIds.length} khóa học có sẵn cho người dùng này
                 </Typography>
               )}
             </Box>
@@ -184,7 +184,7 @@ export function PredictNewView() {
         <Card>
           <CardContent>
             <Typography variant="h6" sx={{ mb: 3 }}>
-              Prediction Results
+              Kết Quả Dự Đoán
             </Typography>{' '}
             <Grid container spacing={3}>
               {' '}
@@ -195,10 +195,10 @@ export function PredictNewView() {
                     {(selectedPrediction.predicted_completion * 100).toFixed(1)}%
                   </Typography>
                   <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                    Predicted Completion
+                    Tỷ Lệ Hoàn Thành Dự Đoán
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Model prediction for course completion percentage
+                    Dự đoán của mô hình về tỷ lệ phần trăm hoàn thành khóa học
                   </Typography>
                 </Box>
               </Grid>{' '}
@@ -209,10 +209,10 @@ export function PredictNewView() {
                     {(selectedPrediction.actual_completion * 100).toFixed(1)}%
                   </Typography>
                   <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                    Actual Completion
+                    Tỷ Lệ Hoàn Thành Thực Tế
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Real completion percentage from test data
+                    Tỷ lệ phần trăm hoàn thành thực tế từ dữ liệu kiểm tra
                   </Typography>
                 </Box>
               </Grid>{' '}
@@ -220,19 +220,19 @@ export function PredictNewView() {
               <Grid size={{ xs: 12 }}>
                 <Box sx={{ p: 3, backgroundColor: 'grey.50', borderRadius: 2 }}>
                   <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                    Prediction Accuracy Analysis
+                    Phân Tích Độ Chính Xác Dự Đoán
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
                     <Typography variant="body2">
-                      <strong>Prediction Error:</strong>{' '}
+                      <strong>Sai Số Dự Đoán:</strong>{' '}
                       {Math.abs(
                         selectedPrediction.actual_completion -
                           selectedPrediction.predicted_completion
                       ).toFixed(3)}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Error Percentage:</strong>{' '}
+                      <strong>Tỷ Lệ Sai Số:</strong>{' '}
                       {(
                         Math.abs(
                           selectedPrediction.actual_completion -
@@ -248,20 +248,19 @@ export function PredictNewView() {
                     selectedPrediction.actual_completion - selectedPrediction.predicted_completion
                   ) < 0.1 ? (
                     <Alert severity="success" sx={{ mb: 2 }}>
-                      <strong>Excellent Prediction!</strong> Error less than 10%. The model
-                      performed very well for this case.
+                      <strong>Dự Đoán Xuất Sắc!</strong> Sai số nhỏ hơn 10%. Mô hình hoạt động rất
+                      tốt cho trường hợp này.
                     </Alert>
                   ) : Math.abs(
                       selectedPrediction.actual_completion - selectedPrediction.predicted_completion
                     ) < 0.2 ? (
                     <Alert severity="warning" sx={{ mb: 2 }}>
-                      <strong>Good Prediction.</strong> Error between 10-20%. The model performed
-                      reasonably well.
+                      <strong>Dự Đoán Tốt.</strong> Sai số từ 10-20%. Mô hình hoạt động khá tốt.
                     </Alert>
                   ) : (
                     <Alert severity="error" sx={{ mb: 2 }}>
-                      <strong>Poor Prediction.</strong> Error greater than 20%. The model needs
-                      significant improvement.
+                      <strong>Dự Đoán Kém.</strong> Sai số lớn hơn 20%. Mô hình cần cải thiện đáng
+                      kể.
                     </Alert>
                   )}
                 </Box>
@@ -270,30 +269,30 @@ export function PredictNewView() {
               <Grid size={{ xs: 12 }}>
                 <Box sx={{ p: 3, border: 1, borderColor: 'divider', borderRadius: 2 }}>
                   <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                    Prediction Details
+                    Chi Tiết Dự Đoán
                   </Typography>{' '}
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Prediction ID
+                        ID Dự Đoán
                       </Typography>{' '}
                       <Typography variant="body1">{selectedPrediction.prediction_id}</Typography>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Model ID
+                        ID Mô Hình
                       </Typography>{' '}
                       <Typography variant="body1">{selectedPrediction.model_id}</Typography>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                       <Typography variant="body2" color="text.secondary">
-                        User ID
+                        ID Người Dùng
                       </Typography>{' '}
                       <Typography variant="body1">{selectedPrediction.user_id}</Typography>{' '}
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Course ID
+                        ID Khóa Học
                       </Typography>
                       <Typography variant="body1">{selectedPrediction.course_id}</Typography>
                     </Grid>{' '}
@@ -303,31 +302,32 @@ export function PredictNewView() {
             </Grid>
           </CardContent>
         </Card>
-      )}
+      )}{' '}
       {/* Instructions when no prediction selected */}
       {!selectedPrediction && !error && !isLoading && (
         <Card>
           <CardContent>
             <Typography variant="h6" sx={{ mb: 2 }}>
-              Instructions
+              Hướng Dẫn
             </Typography>
             <Typography variant="body1" sx={{ mb: 2 }}>
-              To view test prediction results:
+              Để xem kết quả dự đoán kiểm tra:
             </Typography>{' '}
             <Box component="ol" sx={{ pl: 2 }}>
               <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                Choose a user from the available user IDs in the test data
+                Chọn một người dùng từ danh sách ID người dùng có sẵn trong dữ liệu kiểm tra
               </Typography>
               <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                Select a course from the available course IDs in the test data
+                Chọn một khóa học từ danh sách ID khóa học có sẵn trong dữ liệu kiểm tra
               </Typography>
               <Typography component="li" variant="body2">
-                View the predicted vs actual completion results with accuracy analysis
+                Xem kết quả dự đoán so với thực tế cùng với phân tích độ chính xác
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Note: This page shows pre-calculated test predictions, not real-time predictions. The
-              data comes from historical test sets used to evaluate model performance.
+              Lưu ý: Trang này hiển thị các dự đoán kiểm tra đã được tính toán trước, không phải dự
+              đoán thời gian thực. Dữ liệu được lấy từ các bộ kiểm tra lịch sử được sử dụng để đánh
+              giá hiệu suất mô hình.
             </Typography>
           </CardContent>
         </Card>

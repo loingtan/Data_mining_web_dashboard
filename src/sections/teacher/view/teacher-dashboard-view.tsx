@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
 import {
   Bar,
-  Pie,
   Cell,
-  XAxis,
-  YAxis,
-  Legend,
-  Tooltip,
   BarChart,
-  PieChart,
+  Legend,
   CartesianGrid,
   ResponsiveContainer,
+  Scatter,
+  Tooltip,
+  ScatterChart,
+  XAxis,
+  YAxis,
 } from 'recharts';
 
 import Box from '@mui/material/Box';
@@ -31,8 +31,6 @@ import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-
-const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 interface TeacherData {
   course_id: string;
@@ -102,14 +100,13 @@ export function TeacherDashboardView({ data }: Props) {
       totalVideoTime,
     };
   }, [courseData]);
-  console.log(courses);
-  // Prepare chart data for completion distribution
+  console.log(courses); // Prepare chart data for completion distribution
   const completionDistribution = useMemo(() => {
     const ranges = [
-      { name: '0-25%', min: 0, max: 0.25, count: 0 },
-      { name: '26-50%', min: 0.25, max: 0.5, count: 0 },
-      { name: '51-75%', min: 0.5, max: 0.75, count: 0 },
-      { name: '76-100%', min: 0.75, max: 1, count: 0 },
+      { name: '0-25%', min: 0, max: 0.25, count: 0, color: '#FF6B6B' },
+      { name: '26-50%', min: 0.25, max: 0.5, count: 0, color: '#FFA726' },
+      { name: '51-75%', min: 0.5, max: 0.75, count: 0, color: '#42A5F5' },
+      { name: '76-100%', min: 0.75, max: 1, count: 0, color: '#66BB6A' },
     ];
 
     courseData.forEach((item) => {
@@ -121,17 +118,53 @@ export function TeacherDashboardView({ data }: Props) {
     return ranges;
   }, [courseData]);
 
+  // Prepare scatter plot data for performance comparison
+  const performanceScatterData = useMemo(
+    () =>
+      courseData.map((item) => ({
+        x: parseFloat(item.video_completion) * 100,
+        y: parseFloat(item.problem_completion) * 100,
+        name: item.student_name,
+        size: item.user_total_video_views / 10, // Scale down for visualization
+      })),
+    [courseData]
+  );
+
+  // Prepare detailed completion histogram (more granular than ranges)
+  const detailedCompletionData = useMemo(() => {
+    const buckets = Array.from({ length: 10 }, (_, i) => ({
+      range: `${i * 10}-${(i + 1) * 10}%`,
+      count: 0,
+      videoCount: 0,
+      problemCount: 0,
+    }));
+
+    courseData.forEach((item) => {
+      const videoCompletion = Math.floor(parseFloat(item.video_completion) * 10);
+      const problemCompletion = Math.floor(parseFloat(item.problem_completion) * 10);
+
+      if (videoCompletion >= 0 && videoCompletion < 10) {
+        buckets[videoCompletion].videoCount++;
+      }
+      if (problemCompletion >= 0 && problemCompletion < 10) {
+        buckets[problemCompletion].problemCount++;
+      }
+    });
+
+    return buckets;
+  }, [courseData]);
+
   return (
     <DashboardContent>
       <Typography variant="h4" gutterBottom>
         Teacher Dashboard
-      </Typography>
+      </Typography>{' '}
       <Box sx={{ mb: 3 }}>
         <FormControl fullWidth>
-          <InputLabel>Select Course</InputLabel>
+          <InputLabel>Chọn Khóa Học</InputLabel>
           <Select
             value={selectedCourse}
-            label="Select Course"
+            label="Chọn Khóa Học"
             onChange={(e) => setSelectedCourse(e.target.value)}
           >
             {courses.map((course) => (
@@ -146,10 +179,11 @@ export function TeacherDashboardView({ data }: Props) {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         {' '}
         <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+          {' '}
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Students
+                Tổng Số Học Viên
               </Typography>
               <Typography variant="h4">{stats.totalStudents}</Typography>
             </CardContent>
@@ -159,7 +193,7 @@ export function TeacherDashboardView({ data }: Props) {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Avg Video Completion
+                TB Hoàn Thành Video
               </Typography>
               <Typography variant="h4">{stats.avgVideoCompletion}%</Typography>
             </CardContent>
@@ -169,7 +203,7 @@ export function TeacherDashboardView({ data }: Props) {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Avg Problem Completion
+                TB Hoàn Thành Bài Tập
               </Typography>
               <Typography variant="h4">{stats.avgProblemCompletion}%</Typography>
             </CardContent>
@@ -179,7 +213,7 @@ export function TeacherDashboardView({ data }: Props) {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Video Time (hours)
+                Tổng Thời Gian Video (giờ)
               </Typography>
               <Typography variant="h4">{Math.round(stats.totalVideoTime / 3600)}</Typography>
             </CardContent>
@@ -188,71 +222,216 @@ export function TeacherDashboardView({ data }: Props) {
       </Grid>{' '}
       {/* Charts */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
+        {/* Enhanced Video Completion Distribution - Bar Chart */}
         <Grid item xs={12} md={6} {...({} as any)}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Video Completion Distribution
+              Phân Bố Hoàn Thành Video
             </Typography>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={completionDistribution}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                  label={({ name, count }) => `${name}: ${count}`}
-                >
-                  {completionDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>{' '}
-        </Grid>
-        <Grid item xs={12} md={6} {...({} as any)}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Student Performance Comparison
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={courseData.slice(0, 10)}>
-                {' '}
-                {/* Show top 10 students */}
+              <BarChart data={completionDistribution}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="student_name" />
+                <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip />
+                <Tooltip
+                  formatter={(value, name) => [`${value} học viên`, 'Số lượng']}
+                  labelFormatter={(label) => `Khoảng: ${label}`}
+                />
+                <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]}>
+                  {completionDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            {/* Summary statistics below chart */}
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {completionDistribution.map((range, index) => (
+                <Box
+                  key={range.name}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    bgcolor: 'grey.50',
+                    p: 1,
+                    borderRadius: 1,
+                    minWidth: '100px',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      bgcolor: range.color,
+                      borderRadius: '50%',
+                    }}
+                  />
+                  <Typography variant="caption">
+                    {range.name}: {range.count}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Detailed Completion Comparison - Grouped Bar Chart */}
+        <Grid item xs={12} md={6} {...({} as any)}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              So Sánh Chi Tiết Hoàn Thành (Video vs Bài Tập)
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={detailedCompletionData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="range" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value, name) => [
+                    `${value} học viên`,
+                    name === 'videoCount' ? 'Video' : 'Bài Tập',
+                  ]}
+                />
                 <Legend />
-                <Bar dataKey="video_completion" fill="#8884d8" name="Video Completion" />
-                <Bar dataKey="problem_completion" fill="#82ca9d" name="Problem Completion" />
+                <Bar
+                  dataKey="videoCount"
+                  fill="#8884d8"
+                  name="Hoàn thành Video"
+                  radius={[2, 2, 0, 0]}
+                />
+                <Bar
+                  dataKey="problemCount"
+                  fill="#82ca9d"
+                  name="Hoàn thành Bài Tập"
+                  radius={[2, 2, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
         </Grid>
-      </Grid>
+
+        {/* Performance Correlation Scatter Plot */}
+        <Grid item xs={12} {...({} as any)}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Mối Tương Quan Hiệu Suất: Video vs Bài Tập
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Mỗi điểm đại diện cho một học viên. Kích thước điểm tương ứng với số lượt xem video.
+            </Typography>
+            <ResponsiveContainer width="100%" height={400}>
+              <ScatterChart data={performanceScatterData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  dataKey="x"
+                  name="Video Completion"
+                  unit="%"
+                  domain={[0, 100]}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="y"
+                  name="Problem Completion"
+                  unit="%"
+                  domain={[0, 100]}
+                />
+                <Tooltip
+                  cursor={{ strokeDasharray: '3 3' }}
+                  formatter={(value, name) => {
+                    if (name === 'x') return [`${value}%`, 'Hoàn thành Video'];
+                    if (name === 'y') return [`${value}%`, 'Hoàn thành Bài Tập'];
+                    return [value, name];
+                  }}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload[0]) {
+                      return `Học viên: ${payload[0].payload.name}`;
+                    }
+                    return label;
+                  }}
+                />
+                <Scatter dataKey="y" fill="#8884d8" />
+              </ScatterChart>
+            </ResponsiveContainer>
+            {/* Performance insights */}
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  bgcolor: 'success.lighter',
+                  p: 1.5,
+                  borderRadius: 1,
+                  flex: 1,
+                  minWidth: '200px',
+                }}
+              >
+                <Typography variant="subtitle2" color="success.dark">
+                  Hiệu suất cao (≥75%)
+                </Typography>
+                <Typography variant="body2">
+                  {performanceScatterData.filter((d) => d.x >= 75 && d.y >= 75).length} học viên
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  bgcolor: 'warning.lighter',
+                  p: 1.5,
+                  borderRadius: 1,
+                  flex: 1,
+                  minWidth: '200px',
+                }}
+              >
+                <Typography variant="subtitle2" color="warning.dark">
+                  Cần hỗ trợ (25-75%)
+                </Typography>
+                <Typography variant="body2">
+                  {
+                    performanceScatterData.filter(
+                      (d) => (d.x >= 25 && d.x < 75) || (d.y >= 25 && d.y < 75)
+                    ).length
+                  }{' '}
+                  học viên
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  bgcolor: 'error.lighter',
+                  p: 1.5,
+                  borderRadius: 1,
+                  flex: 1,
+                  minWidth: '200px',
+                }}
+              >
+                <Typography variant="subtitle2" color="error.dark">
+                  Nguy cơ cao (&lt;25%)
+                </Typography>
+                <Typography variant="body2">
+                  {performanceScatterData.filter((d) => d.x < 25 && d.y < 25).length} học viên
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>{' '}
       {/* Student Details Table */}
       <Paper sx={{ p: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Student Details
+          Chi Tiết Học Viên
         </Typography>
         <TableContainer>
           <Table>
             {' '}
             <TableHead>
               <TableRow>
-                <TableCell>Student Name</TableCell>
+                <TableCell>Tên Học Viên</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell>Gender</TableCell>
-                <TableCell>School</TableCell>
-                <TableCell>Year of Birth</TableCell>
-                <TableCell align="right">Video Completion</TableCell>
-                <TableCell align="right">Problem Completion</TableCell>
-                <TableCell align="right">Video Views</TableCell>
-                <TableCell align="right">Watch Time (min)</TableCell>
+                <TableCell>Giới Tính</TableCell>
+                <TableCell>Trường</TableCell>
+                <TableCell>Năm Sinh</TableCell>
+                <TableCell align="right">Hoàn Thành Video</TableCell>
+                <TableCell align="right">Hoàn Thành Bài Tập</TableCell>
+                <TableCell align="right">Lượt Xem Video</TableCell>
+                <TableCell align="right">Thời Gian Xem (phút)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import {
   Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
   Pie,
+  Cell,
+  BarChart,
+  Legend,
+  CartesianGrid,
   PieChart,
   ResponsiveContainer,
   Tooltip,
@@ -13,36 +13,44 @@ import {
   YAxis,
 } from 'recharts';
 
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Container,
-  Grid,
-  LinearProgress,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
+import List from '@mui/material/List';
+import Alert from '@mui/material/Alert';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import ListItem from '@mui/material/ListItem';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import LinearProgress from '@mui/material/LinearProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { useCourses, useUserProfiles, useUserActivity } from 'src/utils/api';
 
-// Sample data quality metrics - will be replaced with real calculations
+// Realistic sample data quality metrics for MOOCCubeX dataset analysis
 const sampleCompletenessData = [
   { column: 'user_id', missing: 0, complete: 100 },
   { column: 'course_id', missing: 0, complete: 100 },
-  { column: 'year_of_birth', missing: 15, complete: 85 },
-  { column: 'gender', missing: 8, complete: 92 },
-  { column: 'completion', missing: 5, complete: 95 },
-  { column: 'video_watch_time', missing: 12, complete: 88 },
+  { column: 'enrollment_time', missing: 2.3, complete: 97.7 },
+  { column: 'year_of_birth', missing: 18.5, complete: 81.5 },
+  { column: 'gender', missing: 12.1, complete: 87.9 },
+  { column: 'education_level', missing: 24.7, complete: 75.3 },
+  { column: 'location', missing: 31.4, complete: 68.6 },
+  { column: 'course_completion', missing: 6.8, complete: 93.2 },
+  { column: 'video_watch_time', missing: 8.9, complete: 91.1 },
+  { column: 'quiz_scores', missing: 14.2, complete: 85.8 },
+  { column: 'assignment_submissions', missing: 11.6, complete: 88.4 },
+  { column: 'forum_participation', missing: 45.3, complete: 54.7 },
+  { column: 'peer_assessment', missing: 38.9, complete: 61.1 },
+  { column: 'certification_earned', missing: 7.1, complete: 92.9 },
+  { column: 'learning_path', missing: 19.8, complete: 80.2 },
+  { column: 'study_hours_per_week', missing: 28.4, complete: 71.6 },
 ];
 
 const cardStyles = {
@@ -1436,19 +1444,13 @@ export default function DashboardPage() {
             <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
               Phần 2: Đánh giá Chất lượng Dữ liệu
             </Typography>
-
-            {/* Hard vs Soft Dimensions Explanation */}
+            {/* Hard vs Soft Dimensions Explanation */}{' '}
             <Box sx={{ mb: 4 }}>
               <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
                 Khái niệm Hard vs Soft Dimensions
               </Typography>
               <Grid container spacing={3}>
-                <Grid
-                  size={{
-                    xs: 12,
-                    md: 6,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Paper
                     sx={{
                       p: 3,
@@ -1498,7 +1500,6 @@ export default function DashboardPage() {
                 <Grid
                   size={{
                     xs: 12,
-
                     md: 6,
                   }}
                 >
@@ -1549,59 +1550,193 @@ export default function DashboardPage() {
                 </Grid>
               </Grid>
             </Box>
-
             {/* Hard Dimensions Analysis */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                 Hard Dimensions - Phân tích Cứng
               </Typography>
-
               {/* Completeness Analysis */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                   1. Tính đầy đủ (Completeness)
                 </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ mb: 3 }}>
                   Tỷ lệ phần trăm giá trị thiếu cho các cột quan trọng:
                 </Typography>
 
-                {/* Completeness Chart */}
-                <Paper sx={{ p: 2, height: 300, mb: 2 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={sampleCompletenessData} layout="horizontal">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" domain={[0, 100]} />
-                      <YAxis type="category" dataKey="column" width={120} />
-                      <Tooltip
-                        formatter={(value, name) => [
-                          `${value}%`,
-                          name === 'complete' ? 'Đầy đủ' : 'Thiếu',
-                        ]}
-                      />
-                      <Legend />
-                      <Bar dataKey="complete" fill="#4caf50" name="Đầy đủ" />
-                      <Bar dataKey="missing" fill="#f44336" name="Thiếu" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Paper>
+                {/* Enhanced Completeness Visualization */}
+                <Grid container spacing={3} sx={{ mb: 3 }}>
+                  {/* Horizontal Bar Chart */}
+                  <Grid size={{ xs: 12, lg: 8 }}>
+                    <Paper sx={{ p: 3, height: 420 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ mb: 2, fontWeight: 'bold', textAlign: 'center' }}
+                      >
+                        📊 Biểu đồ Tính đầy đủ dữ liệu (Horizontal Bar Chart)
+                      </Typography>
+                      <ResponsiveContainer width="100%" height="85%">
+                        <BarChart
+                          data={sampleCompletenessData}
+                          layout="horizontal"
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            type="number"
+                            domain={[0, 100]}
+                            label={{ value: 'Tỷ lệ (%)', position: 'insideBottom', offset: -5 }}
+                          />
+                          <YAxis type="category" dataKey="column" width={140} fontSize={11} />
+                          <Tooltip
+                            formatter={(value, name) => [
+                              `${value}%`,
+                              name === 'complete' ? 'Đầy đủ' : 'Thiếu',
+                            ]}
+                            labelFormatter={(label) => `Cột: ${label}`}
+                          />
+                          <Legend />
+                          <Bar
+                            dataKey="complete"
+                            fill="#4caf50"
+                            name="Đầy đủ"
+                            radius={[0, 4, 4, 0]}
+                          />
+                          <Bar
+                            dataKey="missing"
+                            fill="#f44336"
+                            name="Thiếu"
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Paper>
+                  </Grid>
 
-                <Alert severity="warning">
+                  {/* Vertical Bar Chart for Comparison */}
+                  <Grid size={{ xs: 12, lg: 4 }}>
+                    <Paper sx={{ p: 3, height: 420 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ mb: 2, fontWeight: 'bold', textAlign: 'center' }}
+                      >
+                        📈 Top 6 cột thiếu nhiều nhất
+                      </Typography>
+                      <ResponsiveContainer width="100%" height="85%">
+                        <BarChart
+                          data={sampleCompletenessData
+                            .sort((a, b) => b.missing - a.missing)
+                            .slice(0, 6)}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="column"
+                            angle={-45}
+                            textAnchor="end"
+                            height={80}
+                            fontSize={10}
+                          />
+                          <YAxis
+                            label={{ value: 'Tỷ lệ thiếu (%)', angle: -90, position: 'insideLeft' }}
+                          />
+                          <Tooltip
+                            formatter={(value) => [`${value}%`, 'Tỷ lệ thiếu']}
+                            labelFormatter={(label) => `Cột: ${label}`}
+                          />
+                          <Bar dataKey="missing" fill="#ff5722" radius={[4, 4, 0, 0]}>
+                            {sampleCompletenessData
+                              .sort((a, b) => b.missing - a.missing)
+                              .slice(0, 6)
+                              .map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={
+                                    entry.missing > 30
+                                      ? '#d32f2f'
+                                      : entry.missing > 15
+                                        ? '#ff5722'
+                                        : '#ff9800'
+                                  }
+                                />
+                              ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                {/* Completeness Summary Cards */}
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#e8f5e8' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Cột hoàn chỉnh 100%
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: 'success.main', fontWeight: 'bold' }}>
+                        {sampleCompletenessData.filter((item) => item.missing === 0).length}
+                      </Typography>
+                      <Typography variant="caption">
+                        /{sampleCompletenessData.length} tổng cột
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#fff3e0' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Thiếu ít (&lt;15%)
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: 'warning.main', fontWeight: 'bold' }}>
+                        {
+                          sampleCompletenessData.filter(
+                            (item) => item.missing > 0 && item.missing < 15
+                          ).length
+                        }
+                      </Typography>
+                      <Typography variant="caption">cột</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#fce4ec' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Thiếu nhiều (≥30%)
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                        {sampleCompletenessData.filter((item) => item.missing >= 30).length}
+                      </Typography>
+                      <Typography variant="caption">cột</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#e3f2fd' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Tỷ lệ đầy đủ TB
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                        {(
+                          sampleCompletenessData.reduce((sum, item) => sum + item.complete, 0) /
+                          sampleCompletenessData.length
+                        ).toFixed(1)}
+                        %
+                      </Typography>
+                      <Typography variant="caption">trung bình</Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                <Alert severity="warning" sx={{ mb: 2 }}>
                   <Typography variant="body2">
-                    <strong>Ví dụ:</strong> Cột year_of_birth ban đầu thiếu 15% dữ liệu, sau khi xử
-                    lý bằng phương pháp imputation, tỷ lệ thiếu giảm còn 5%.
+                    <strong>Phân tích:</strong> Các cột bắt buộc (user_id, course_id) có tỷ lệ đầy
+                    đủ 100%. Các cột tương tác xã hội (forum_participation, peer_assessment) có tỷ
+                    lệ thiếu cao do tính chất tự nguyện. Cần xử lý imputation cho year_of_birth,
+                    education_level để cải thiện chất lượng dự đoán.
                   </Typography>
                 </Alert>
-              </Box>
-
+              </Box>{' '}
               {/* Other Hard Dimensions */}
               <Grid container spacing={3}>
-                <Grid
-                  size={{
-                    xs: 12,
-
-                    md: 4,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Paper sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                       Tính duy nhất
@@ -1612,13 +1747,7 @@ export default function DashboardPage() {
                     <Typography variant="body2">Tỷ lệ bản ghi không trùng lặp</Typography>
                   </Paper>
                 </Grid>
-                <Grid
-                  size={{
-                    xs: 12,
-
-                    md: 4,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Paper sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                       Tính nhất quán
@@ -1629,13 +1758,7 @@ export default function DashboardPage() {
                     <Typography variant="body2">Định dạng dữ liệu đồng nhất</Typography>
                   </Paper>
                 </Grid>
-                <Grid
-                  size={{
-                    xs: 12,
-
-                    md: 4,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Paper sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                       Tính hợp lệ
@@ -1648,7 +1771,6 @@ export default function DashboardPage() {
                 </Grid>
               </Grid>
             </Box>
-
             {/* Soft Dimensions Analysis */}
             <Box>
               <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: 'success.main' }}>
@@ -1656,13 +1778,7 @@ export default function DashboardPage() {
               </Typography>
 
               <Grid container spacing={3}>
-                <Grid
-                  size={{
-                    xs: 12,
-
-                    md: 6,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Paper sx={{ p: 3, height: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                       Tính liên quan (Relevance)
@@ -1679,13 +1795,7 @@ export default function DashboardPage() {
                   </Paper>
                 </Grid>
 
-                <Grid
-                  size={{
-                    xs: 12,
-
-                    md: 4,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Paper sx={{ p: 3, height: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                       Khả năng diễn giải (Interpretability)
@@ -1701,12 +1811,7 @@ export default function DashboardPage() {
                   </Paper>
                 </Grid>
 
-                <Grid
-                  size={{
-                    xs: 12,
-                    md: 4,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Paper sx={{ p: 3, height: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                       Tính chính xác (Accuracy)
@@ -1722,13 +1827,7 @@ export default function DashboardPage() {
                   </Paper>
                 </Grid>
 
-                <Grid
-                  size={{
-                    xs: 12,
-
-                    md: 4,
-                  }}
-                >
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Paper sx={{ p: 3, height: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                       Tính kịp thời (Timeliness)
@@ -1745,7 +1844,6 @@ export default function DashboardPage() {
                 </Grid>
               </Grid>
             </Box>
-
             {/* Action Items */}
             <Alert severity="info" sx={{ mt: 4 }}>
               <Typography variant="body2">

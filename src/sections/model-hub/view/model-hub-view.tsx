@@ -491,15 +491,16 @@ export function ModelHubView() {
               </Box>
             ) : testPredictions && testPredictions.length > 0 ? (
               <TableContainer component={Paper}>
+                {' '}
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>User ID</TableCell>
-                      <TableCell>Course ID</TableCell>
-                      <TableCell align="right">Actual Completion</TableCell>
-                      <TableCell align="right">Predicted Completion</TableCell>
-                      <TableCell align="right">Prediction Error</TableCell>
-                      <TableCell>Set Type</TableCell>
+                      <TableCell>ID Người Dùng</TableCell>
+                      <TableCell>ID Khóa Học</TableCell>
+                      <TableCell align="right">Hoàn Thành Thực Tế</TableCell>
+                      <TableCell align="right">Hoàn Thành Dự Đoán</TableCell>
+                      <TableCell align="right">Sai Số Dự Đoán</TableCell>
+                      <TableCell>Loại Dữ Liệu</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
