@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 const BASE_URL = 'https://pnqljxlcqfeubrtfrbvv.supabase.co/functions/v1';
@@ -11,6 +12,7 @@ const ENDPOINTS = {
   USER_ACTIVITY: `${BASE_URL}/query-week-table`,
   MODELS: `${BASE_URL}/query-models-db`,
   TEST_PREDICTIONS: `${BASE_URL}/query-test-predictions`,
+  PREDICT: `${BASE_URL}/predict`,
 } as const;
 
 // TypeScript interfaces
@@ -171,6 +173,29 @@ export interface TestPrediction {
   prediction_id: string;
 }
 
+export interface PredictionRequest {
+  model_id: number;
+  user_id: string;
+  course_id: string;
+  problem_chapter: number;
+  total_correct_answer_week1: number;
+  problem_index: number;
+  course_num_problems: number;
+  problem_type: number;
+  course_num_videos: number;
+  problem_done_week1: number;
+}
+
+export interface PredictionResponse {
+  predicted_completion: number;
+  confidence: number;
+  model_info: {
+    model_id: number;
+    model_name: string;
+    algorithm_used: string;
+  };
+}
+
 // API Functions
 export const fetchUserProfiles = async (userId?: string): Promise<UserProfileResponse> => {
   const body = userId ? { user_id: userId } : { name: 'Functions' };
@@ -244,18 +269,37 @@ export const fetchUserActivity = async (): Promise<UserActivity[]> => {
   return response.json();
 };
 
-export const fetchTestPredictions = async (modelId: number): Promise<TestPrediction[]> => {
+export const fetchTestPredictions = async (modelId?: number | null): Promise<TestPrediction[]> => {
+  const body = modelId ? { model_id: modelId } : { name: 'Functions' };
+
   const response = await fetch(ENDPOINTS.TEST_PREDICTIONS, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${API_KEY}`,
     },
-    body: JSON.stringify({ model_id: modelId }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     throw new Error('Failed to fetch test predictions from API');
+  }
+
+  return response.json();
+};
+
+export const fetchPrediction = async (request: PredictionRequest): Promise<PredictionResponse> => {
+  const response = await fetch(ENDPOINTS.PREDICT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch prediction from API');
   }
 
   return response.json();
@@ -294,11 +338,48 @@ export const usePredictionModels = () =>
     gcTime: 30 * 60 * 1000, // Cache is kept for 30 minutes
   });
 
-export const useTestPredictions = (modelId: number | null) =>
+export const useTestPredictions = (modelId?: number | null) =>
   useQuery<TestPrediction[]>({
     queryKey: ['testPredictions', modelId],
-    queryFn: () => fetchTestPredictions(modelId!),
-    enabled: !!modelId,
+    queryFn: () => fetchTestPredictions(modelId),
     staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Cache is kept for 30 minutes
   });
+
+// Hook for making predictions with mutation
+export const usePrediction = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<PredictionResponse | null>(null);
+
+  const predict = async (request: PredictionRequest) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await fetchPrediction(request);
+      setData(result);
+      return result;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Có lỗi xảy ra khi thực hiện dự đoán';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const reset = () => {
+    setData(null);
+    setError(null);
+    setIsLoading(false);
+  };
+
+  return {
+    predict,
+    reset,
+    isLoading,
+    error,
+    data,
+  };
+};

@@ -19,6 +19,7 @@ import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -32,6 +33,8 @@ import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useRouter } from 'src/routes/hooks';
+
 import {
   useTestPredictions,
   usePredictionModels,
@@ -42,6 +45,7 @@ import {
 // ----------------------------------------------------------------------
 
 export function ModelHubView() {
+  const router = useRouter();
   const { data: models, isLoading, error } = usePredictionModels();
   const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
   const [tabValue, setTabValue] = useState(0);
@@ -147,19 +151,16 @@ export function ModelHubView() {
       <Typography variant="h3" sx={{ mb: 4, textAlign: 'center', fontWeight: 'bold' }}>
         🎯 Trung Tâm Mô Hình Dự Đoán
       </Typography>
-
       <Typography variant="h6" sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
         Thông Tin Mô Hình Dự Đoán
-      </Typography>
-
-      {/* Tabs for Model Info and Predictions */}
+      </Typography>{' '}
+      {/* Tabs for Model Info and Test Predictions */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
           <Tab label="Thông Tin Mô Hình" />
           <Tab label="Kết Quả Dự Đoán" disabled={!selectedModelId} />
         </Tabs>
       </Box>
-
       {/* Tab Content - Model Info */}
       {tabValue === 0 && (
         <Box>
@@ -205,7 +206,7 @@ export function ModelHubView() {
                       </Typography>
                       <Typography variant="body2" sx={{ mb: 1 }}>
                         <strong>Tuần:</strong> {selectedModel.week}
-                      </Typography>
+                      </Typography>{' '}
                       <Chip
                         label={
                           selectedModel.is_active === 'True' ? 'Đang hoạt động' : 'Không hoạt động'
@@ -213,6 +214,16 @@ export function ModelHubView() {
                         color={selectedModel.is_active === 'True' ? 'success' : 'default'}
                         size="small"
                       />
+                      {/* Navigate to Predict Button */}
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 2 }}
+                        onClick={() => router.push(`/predict?modelId=${selectedModelId}`)}
+                        disabled={!selectedModelId}
+                      >
+                        🔮 Dự Đoán với Mô Hình này
+                      </Button>
                     </Paper>
                   </Box>
                 )}
@@ -467,7 +478,6 @@ export function ModelHubView() {
           )}
         </Box>
       )}
-
       {/* Tab Content - Predictions */}
       {tabValue === 1 && selectedModelId && (
         <Card>
@@ -475,7 +485,6 @@ export function ModelHubView() {
             <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
               🔮 Kết Quả Dự Đoán Test
             </Typography>
-
             {isPredictionsLoading ? (
               <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
                 <CircularProgress />
@@ -539,8 +548,7 @@ export function ModelHubView() {
               </TableContainer>
             ) : (
               <Alert severity="info">Không có dữ liệu dự đoán test cho mô hình này.</Alert>
-            )}
-
+            )}{' '}
             {testPredictions && testPredictions.length > 20 && (
               <Typography
                 variant="body2"
@@ -551,7 +559,7 @@ export function ModelHubView() {
             )}
           </CardContent>
         </Card>
-      )}
+      )}{' '}
     </Box>
   );
 }

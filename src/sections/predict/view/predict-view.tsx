@@ -1,6 +1,20 @@
-import type { PredictData } from 'src/pages/predict';
+
 
 import { useState, useEffect } from 'react';
+
+interface PredictData {
+  student_id: string;
+  student_name: string;
+  course_name: string;
+  course_num_students: number;
+  course_avg_completion: number;
+  completion: number;
+  video_completion_rate: number;
+  problem_completion_rate: number;
+  total_time_spent: number;
+  [key: `week_${number}_video_time`]: number;
+  [key: `week_${number}_problem_score`]: number;
+}
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';

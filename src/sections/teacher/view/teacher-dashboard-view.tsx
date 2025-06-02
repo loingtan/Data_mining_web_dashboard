@@ -40,6 +40,9 @@ interface TeacherData {
   user_id: string;
   student_name: string;
   student_email: string;
+  gender: string;
+  school: string;
+  year_of_birth: number | null;
   video_completion: string;
   problem_completion: string;
   user_total_video_views: number;
@@ -51,7 +54,7 @@ interface Props {
 }
 
 export function TeacherDashboardView({ data }: Props) {
-  // Get unique courses
+  console.log(data);
   const courses = useMemo(() => {
     const courseMap = new Map();
     data.forEach((item) => {
@@ -99,7 +102,7 @@ export function TeacherDashboardView({ data }: Props) {
       totalVideoTime,
     };
   }, [courseData]);
-
+  console.log(courses);
   // Prepare chart data for completion distribution
   const completionDistribution = useMemo(() => {
     const ranges = [
@@ -238,10 +241,14 @@ export function TeacherDashboardView({ data }: Props) {
         </Typography>
         <TableContainer>
           <Table>
+            {' '}
             <TableHead>
               <TableRow>
                 <TableCell>Student Name</TableCell>
                 <TableCell>Email</TableCell>
+                <TableCell>Gender</TableCell>
+                <TableCell>School</TableCell>
+                <TableCell>Year of Birth</TableCell>
                 <TableCell align="right">Video Completion</TableCell>
                 <TableCell align="right">Problem Completion</TableCell>
                 <TableCell align="right">Video Views</TableCell>
@@ -253,6 +260,9 @@ export function TeacherDashboardView({ data }: Props) {
                 <TableRow key={student.user_id}>
                   <TableCell>{student.student_name}</TableCell>
                   <TableCell>{student.student_email}</TableCell>
+                  <TableCell>{student.gender}</TableCell>
+                  <TableCell>{student.school || 'N/A'}</TableCell>
+                  <TableCell>{student.year_of_birth || 'N/A'}</TableCell>
                   <TableCell align="right">
                     {(parseFloat(student.video_completion) * 100).toFixed(1)}%
                   </TableCell>
