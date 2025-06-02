@@ -185,7 +185,7 @@ export function StudentDashboardView({ data, studentId }: Props) {
       </Box>
 
       {/* Chọn mô hình dự đoán */}
-      <Box sx={{ mb: 3 }}>
+      {/* <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1">Chọn mô hình dự đoán</Typography>
         <Select
           value={selectedModelId || ''}
@@ -203,10 +203,10 @@ export function StudentDashboardView({ data, studentId }: Props) {
             </MenuItem>
           ))}
         </Select>
-      </Box>
+      </Box> */}
 
       {/* Hiển thị dự đoán */}
-      {selectedModelId && (
+      {/* {selectedModelId && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -301,7 +301,7 @@ export function StudentDashboardView({ data, studentId }: Props) {
             )}
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Thông tin khóa học */}
       <Grid container spacing={3}>
