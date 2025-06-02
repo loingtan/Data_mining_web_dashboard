@@ -123,73 +123,86 @@ export function HomeView() {
         const courses = coursesResponse.courses || [];
         const activities = userActivityData || [];
 
-        // Calculate real statistics from user activity data
+        // Calculate real statistics from API data
         const totalStudents = users.length;
         const totalCourses = courses.length;
 
-        // Get unique schools
-        const uniqueSchools = new Set(users.map((user) => user.school));
+        // Get unique schools from user profiles
+        const uniqueSchools = new Set(users.map((user) => user.school).filter(Boolean));
         const totalSchools = uniqueSchools.size;
 
         // Calculate real metrics from activity data
+        const completionRates = activities
+          .map((activity) => activity.completion)
+          .filter((rate) => rate !== null);
         const avgCompletion =
-          activities.length > 0
-            ? activities.reduce((sum, activity) => sum + activity.completion, 0) / activities.length
-            : 0.75;
+          completionRates.length > 0
+            ? completionRates.reduce((sum, rate) => sum + rate, 0) / completionRates.length
+            : 0;
 
+        // Calculate video watch time from activity data
+        const videoWatchTimes = activities
+          .map((activity) => parseFloat(activity.course_total_video_watch_time) || 0)
+          .filter((time) => time > 0);
+        const totalVideoWatchTimeMinutes =
+          videoWatchTimes.reduce((sum, time) => sum + time, 0) / 60;
         const avgVideoWatchTime =
-          activities.length > 0
-            ? activities.reduce((sum, activity) => {
-                const watchTime = parseFloat(activity.course_total_video_watch_time) || 0;
-                return sum + watchTime;
-              }, 0) /
-              activities.length /
-              60 // Convert to minutes
-            : 120;
+          videoWatchTimes.length > 0 ? totalVideoWatchTimeMinutes / videoWatchTimes.length : 0;
 
+        // Calculate problem attempts from activity data
+        const problemAttempts = activities
+          .map((activity) => activity.course_avg_problem_attempts_per_student)
+          .filter((attempts) => attempts !== null && attempts > 0);
         const avgProblemAttempts =
-          activities.length > 0
-            ? activities.reduce(
-                (sum, activity) => sum + activity.course_avg_problem_attempts_per_student,
-                0
-              ) / activities.length
-            : 8.5;
+          problemAttempts.length > 0
+            ? problemAttempts.reduce((sum, attempts) => sum + attempts, 0) / problemAttempts.length
+            : 0;
 
+        // Calculate comments and replies from activity data
+        const commentsPerStudent = activities
+          .map((activity) => activity.course_avg_comments_per_student)
+          .filter((comments) => comments !== null && comments > 0);
         const avgCommentsPerStudent =
-          activities.length > 0
-            ? activities.reduce(
-                (sum, activity) => sum + activity.course_avg_comments_per_student,
-                0
-              ) / activities.length
-            : 12;
+          commentsPerStudent.length > 0
+            ? commentsPerStudent.reduce((sum, comments) => sum + comments, 0) /
+              commentsPerStudent.length
+            : 0;
 
+        const repliesPerStudent = activities
+          .map((activity) => activity.course_avg_replies_per_student)
+          .filter((replies) => replies !== null && replies > 0);
         const avgRepliesPerStudent =
-          activities.length > 0
-            ? activities.reduce(
-                (sum, activity) => sum + activity.course_avg_replies_per_student,
-                0
-              ) / activities.length
-            : 8;
+          repliesPerStudent.length > 0
+            ? repliesPerStudent.reduce((sum, replies) => sum + replies, 0) /
+              repliesPerStudent.length
+            : 0;
 
-        // Calculate totals from course data
-        const totalTeachers =
-          activities.length > 0
-            ? Math.max(...activities.map((activity) => activity.course_num_teacher))
-            : Math.ceil(totalCourses * 1.2);
+        // Calculate total teachers from activity data
+        const teacherCounts = activities
+          .map((activity) => activity.course_num_teacher)
+          .filter((count) => count > 0);
+        const totalTeachers = teacherCounts.length > 0 ? Math.max(...teacherCounts) : 0;
 
-        const totalExercises =
-          activities.length > 0
-            ? activities.reduce((sum, activity) => sum + activity.course_num_exercises, 0)
-            : totalCourses * 15;
+        // Calculate total exercises from activity data
+        const exerciseCounts = activities
+          .map((activity) => activity.course_num_exercises)
+          .filter((count) => count > 0);
+        const totalExercises = exerciseCounts.reduce((sum, count) => sum + count, 0);
 
-        const avgProblemScore = 0.82; // This would need calculation from actual score data
-        const totalVideoWatchTime =
-          activities.length > 0
-            ? activities.reduce((sum, activity) => {
-                const watchTime = parseFloat(activity.course_total_video_watch_time) || 0;
-                return sum + watchTime;
-              }, 0) / 60 // Convert to minutes
-            : totalStudents * 1800;
+        // Calculate average problem score from weekly data
+        const allScores = [];
+        for (let week = 1; week <= 4; week++) {
+          const weekScores = activities
+            .map(
+              (activity) => activity[`total_score_week${week}` as keyof typeof activity] as number
+            )
+            .filter((score) => score !== null && score > 0);
+          allScores.push(...weekScores);
+        }
+        const avgProblemScore =
+          allScores.length > 0
+            ? allScores.reduce((sum, score) => sum + score, 0) / allScores.length / 100 // Normalize to 0-1
+            : 0;
 
         setStats({
           totalStudents,
@@ -203,7 +216,7 @@ export function HomeView() {
           avgCommentsPerStudent,
           avgRepliesPerStudent,
           avgProblemScore,
-          totalVideoWatchTime,
+          totalVideoWatchTime: totalVideoWatchTimeMinutes,
         });
       } catch (err) {
         console.error('Error processing data:', err);
@@ -211,79 +224,84 @@ export function HomeView() {
     }
   }, [userProfilesResponse, coursesResponse, userActivityData]);
 
-  // Prepare chart data with null checks
-  const completionData = [
-    { name: 'Hoàn thành', value: Math.round(stats.avgCompletion * 100) },
-    { name: 'Chưa hoàn thành', value: Math.round((1 - stats.avgCompletion) * 100) },
-  ];
+  // Prepare chart data with real API data
+  const completionData = useMemo(
+    () => [
+      { name: 'Hoàn thành', value: Math.round(stats.avgCompletion * 100) },
+      { name: 'Chưa hoàn thành', value: Math.round((1 - stats.avgCompletion) * 100) },
+    ],
+    [stats.avgCompletion]
+  );
 
-  const performanceData = [
-    { name: 'Video', value: Math.round(stats.avgVideoWatchTime) },
-    { name: 'Bài tập', value: Math.round(stats.avgProblemAttempts) },
-    { name: 'Tương tác', value: Math.round(stats.avgCommentsPerStudent) },
-    { name: 'Điểm số', value: Math.round(stats.avgProblemScore * 100) },
-  ];
+  const performanceData = useMemo(
+    () => [
+      { name: 'Video (phút)', value: Math.round(stats.avgVideoWatchTime) },
+      { name: 'Bài tập', value: Math.round(stats.avgProblemAttempts) },
+      { name: 'Tương tác', value: Math.round(stats.avgCommentsPerStudent) },
+      { name: 'Điểm số (%)', value: Math.round(stats.avgProblemScore * 100) },
+    ],
+    [stats]
+  );
 
   // Calculate trend data from real user activity data
   const trendData = useMemo(() => {
     if (!userActivityData || userActivityData.length === 0) {
-      // Fallback data if no activity data is available
-      return [
-        { name: 'Tuần 1', video: 65, exercise: 45, interaction: 30 },
-        { name: 'Tuần 2', video: 75, exercise: 55, interaction: 40 },
-        { name: 'Tuần 3', video: 85, exercise: 65, interaction: 50 },
-        { name: 'Tuần 4', video: 90, exercise: 75, interaction: 60 },
-      ];
+      return [];
     }
 
-    // Calculate weekly averages from real data
     const weeks = [1, 2, 3, 4];
-    return weeks.map((week) => {
-      const weekVideoTimes = userActivityData
-        .map(
-          (activity) =>
-            (activity[`total_video_watching_week${week}` as keyof typeof activity] as number) || 0
-        )
-        .filter((time) => time > 0);
-
-      const weekExercises = userActivityData
-        .map((activity) => (activity[`ex_do_week${week}` as keyof typeof activity] as number) || 0)
-        .filter((ex) => ex > 0);
-
-      const weekComments = userActivityData
-        .map((activity) =>
-          parseFloat(
-            (activity[`comment_count_week${week}` as keyof typeof activity] as string) || '0'
+    return weeks
+      .map((week) => {
+        // Calculate video watching time (convert seconds to minutes)
+        const weekVideoTimes = userActivityData
+          .map(
+            (activity) =>
+              activity[`total_video_watching_week${week}` as keyof typeof activity] as number
           )
-        )
-        .filter((comments) => comments > 0);
+          .filter((time) => time !== null && time > 0);
 
-      const avgVideo =
-        weekVideoTimes.length > 0
-          ? Math.round(
-              weekVideoTimes.reduce((sum, time) => sum + time, 0) / weekVideoTimes.length / 60
-            ) // Convert to minutes
-          : 0;
+        const avgVideo =
+          weekVideoTimes.length > 0
+            ? Math.round(
+                weekVideoTimes.reduce((sum, time) => sum + time, 0) / weekVideoTimes.length / 60
+              )
+            : 0;
 
-      const avgExercise =
-        weekExercises.length > 0
-          ? Math.round(weekExercises.reduce((sum, ex) => sum + ex, 0) / weekExercises.length)
-          : 0;
+        // Calculate exercises done
+        const weekExercises = userActivityData
+          .map((activity) => activity[`ex_do_week${week}` as keyof typeof activity] as number)
+          .filter((ex) => ex !== null && ex > 0);
 
-      const avgInteraction =
-        weekComments.length > 0
-          ? Math.round(
-              weekComments.reduce((sum, comments) => sum + comments, 0) / weekComments.length
-            )
-          : 0;
+        const avgExercise =
+          weekExercises.length > 0
+            ? Math.round(weekExercises.reduce((sum, ex) => sum + ex, 0) / weekExercises.length)
+            : 0;
 
-      return {
-        name: `Tuần ${week}`,
-        video: Math.max(avgVideo, 10), // Ensure minimum values for visualization
-        exercise: Math.max(avgExercise, 5),
-        interaction: Math.max(avgInteraction, 2),
-      };
-    });
+        // Calculate comments (convert string to number)
+        const weekComments = userActivityData
+          .map((activity) => {
+            const commentStr = activity[
+              `comment_count_week${week}` as keyof typeof activity
+            ] as string;
+            return parseFloat(commentStr || '0');
+          })
+          .filter((comments) => comments > 0);
+
+        const avgInteraction =
+          weekComments.length > 0
+            ? Math.round(
+                weekComments.reduce((sum, comments) => sum + comments, 0) / weekComments.length
+              )
+            : 0;
+
+        return {
+          name: `Tuần ${week}`,
+          video: avgVideo,
+          exercise: avgExercise,
+          interaction: avgInteraction,
+        };
+      })
+      .filter((week) => week.video > 0 || week.exercise > 0 || week.interaction > 0); // Only include weeks with data
   }, [userActivityData]);
 
   if (isLoading) {
@@ -423,7 +441,7 @@ export function HomeView() {
           </Card>
 
           {/* Quick Stats Overview */}
-          <Box
+          {/* <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
@@ -494,7 +512,11 @@ export function HomeView() {
                 <Typography variant="h3" sx={{ mb: 1, fontWeight: 'bold' }}>
                   {stats.totalCourses}
                 </Typography>
-                <LinearProgress variant="determinate" value={75} sx={progressStyles} />
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min((stats.totalCourses / 100) * 100, 100)}
+                  sx={progressStyles}
+                />
               </CardContent>
             </Card>
 
@@ -518,10 +540,14 @@ export function HomeView() {
                 <Typography variant="h3" sx={{ mb: 1, fontWeight: 'bold' }}>
                   {stats.totalSchools}
                 </Typography>
-                <LinearProgress variant="determinate" value={60} sx={progressStyles} />
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min((stats.totalSchools / 50) * 100, 100)}
+                  sx={progressStyles}
+                />
               </CardContent>
             </Card>
-          </Box>
+          </Box> */}
 
           {/* Core Information Grid */}
           <Box
@@ -545,11 +571,26 @@ export function HomeView() {
                     >
                       Đầu vào chính
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                      • Dữ liệu hành vi học tập của học viên trên nền tảng MOOC
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
+                      <strong>Thông tin học viên:</strong> {formatNumber(stats.totalStudents)} học
+                      viên từ {stats.totalSchools} trường học
                       <br />
-                      • Thông tin cá nhân cơ bản của học viên
-                      <br />• Thông tin về khóa học và cấu trúc
+                      <strong>Thông tin khóa học:</strong> {stats.totalCourses} khóa học với{' '}
+                      {stats.totalTeachers} giáo viên
+                      <br />
+                      <strong>Nội dung khóa học:</strong> {formatNumber(stats.totalExercises)} bài
+                      tập và video học
+                      <br />
+                      <strong>Hoạt động học tập:</strong> Trung bình{' '}
+                      {Math.round(stats.avgCommentsPerStudent)} bình luận,{' '}
+                      {Math.round(stats.avgRepliesPerStudent)} trả lời mỗi học viên
+                      <br />
+                      <strong>Dữ liệu theo tuần:</strong> Bài tập, video xem, điểm số, tốc độ xem,
+                      bình luận (tuần 1-4)
+                      <br />
+                      <strong>Thống kê tổng thể:</strong> Tỷ lệ hoàn thành trung bình{' '}
+                      {formatPercentage(stats.avgCompletion)},{' '}
+                      {formatDuration(stats.avgVideoWatchTime)} xem video mỗi học viên
                     </Typography>
                   </Box>
                   <Box>
@@ -560,10 +601,7 @@ export function HomeView() {
                       Đầu ra chính
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                      • Dự đoán xác suất hoàn thành khóa học
-                      <br />
-                      • Báo cáo tổng quan và chi tiết về tiến trình
-                      <br />• Gợi ý hỗ trợ cá nhân hóa
+                      • Dự đoán xác suất hoàn thành khóa học của từng học viên
                     </Typography>
                   </Box>
                 </Stack>
@@ -769,7 +807,7 @@ export function HomeView() {
                       fill="#8884d8"
                       paddingAngle={5}
                       dataKey="value"
-                      label
+                      label={({ name, value }) => `${name}: ${value}%`}
                     >
                       {completionData.map((entry, index) => (
                         <Cell
@@ -779,7 +817,7 @@ export function HomeView() {
                         />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value) => [`${value}%`, '']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -791,36 +829,51 @@ export function HomeView() {
                 <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                   Xu hướng học tập theo tuần
                 </Typography>
-                <ResponsiveContainer width="100%" height={350}>
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="video"
-                      stroke="#8884d8"
-                      name="Video"
-                      strokeWidth={3}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="exercise"
-                      stroke="#82ca9d"
-                      name="Bài tập"
-                      strokeWidth={3}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="interaction"
-                      stroke="#ffc658"
-                      name="Tương tác"
-                      strokeWidth={3}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {trendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={350}>
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="video"
+                        stroke="#8884d8"
+                        name="Video (phút)"
+                        strokeWidth={3}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="exercise"
+                        stroke="#82ca9d"
+                        name="Bài tập"
+                        strokeWidth={3}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="interaction"
+                        stroke="#ffc658"
+                        name="Tương tác"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: 350,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      Không có dữ liệu xu hướng
+                    </Typography>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Box>
