@@ -19,6 +19,7 @@ export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const TeacherPage = lazy(() => import('src/pages/teacher'));
 export const StudentPage = lazy(() => import('src/pages/student'));
 export const PredictPage = lazy(() => import('src/pages/predict'));
+export const ModelHubPage = lazy(() => import('src/pages/model-hub'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -58,6 +59,7 @@ export const routesSection: RouteObject[] = [
       { path: 'teacher', element: <TeacherPage /> },
       { path: 'student', element: <StudentPage /> },
       { path: 'predict', element: <PredictPage /> },
+      { path: 'model-hub', element: <ModelHubPage /> },
     ],
   },
   {

@@ -1,0 +1,1 @@
+export { ModelHubView } from './view';

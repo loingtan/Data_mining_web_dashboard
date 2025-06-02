@@ -37,4 +37,9 @@ export const navData = [
     path: '/predict',
     icon: icon('ic-predict'),
   },
+  {
+    title: 'Model Hub',
+    path: '/model-hub',
+    icon: icon('ic-analytics'),
+  },
 ];

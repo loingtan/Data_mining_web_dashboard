@@ -9,6 +9,8 @@ const ENDPOINTS = {
   USER_PROFILE: `${BASE_URL}/get-user-profile`,
   COURSE_WEEK_PROFILES: `${BASE_URL}/get-course-and-week-profiles`,
   USER_ACTIVITY: `${BASE_URL}/query-week-table`,
+  MODELS: `${BASE_URL}/query-models-db`,
+  TEST_PREDICTIONS: `${BASE_URL}/query-test-predictions`,
 } as const;
 
 // TypeScript interfaces
@@ -123,6 +125,52 @@ export interface UserActivity {
   alpha: string;
 }
 
+export interface PredictionModel {
+  model_id: number;
+  model_name: string;
+  model_version: string;
+  algorithm_used: string;
+  week: number;
+  performance_metrics_json: string;
+  feature_importance_json: string;
+  hyperparameters_json: string;
+  is_active: string;
+}
+
+export interface PerformanceMetrics {
+  test: {
+    rmse: number;
+    mae: number;
+    r2: number;
+    mape: number;
+  };
+  train: {
+    rmse: number;
+    mae: number;
+    r2: number;
+    mape: number;
+  };
+}
+
+export interface FeatureImportance {
+  [feature: string]: number;
+}
+
+export interface Hyperparameters {
+  [param: string]: any;
+}
+
+export interface TestPrediction {
+  user_id: string;
+  course_id: string;
+  actual_completion: number;
+  predicted_completion: number;
+  model_id: number;
+  output_predict_json: string;
+  set_type: string;
+  prediction_id: string;
+}
+
 // API Functions
 export const fetchUserProfiles = async (userId?: string): Promise<UserProfileResponse> => {
   const body = userId ? { user_id: userId } : { name: 'Functions' };
@@ -162,6 +210,23 @@ export const fetchCourses = async (courseId?: string): Promise<CourseResponse> =
   return response.json();
 };
 
+export const fetchPredictionModels = async (): Promise<PredictionModel[]> => {
+  const response = await fetch(ENDPOINTS.MODELS, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({ name: 'Functions' }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch prediction models from API');
+  }
+
+  return response.json();
+};
+
 export const fetchUserActivity = async (): Promise<UserActivity[]> => {
   const response = await fetch(ENDPOINTS.USER_ACTIVITY, {
     method: 'POST',
@@ -174,6 +239,23 @@ export const fetchUserActivity = async (): Promise<UserActivity[]> => {
 
   if (!response.ok) {
     throw new Error('Failed to fetch user activity from API');
+  }
+
+  return response.json();
+};
+
+export const fetchTestPredictions = async (modelId: number): Promise<TestPrediction[]> => {
+  const response = await fetch(ENDPOINTS.TEST_PREDICTIONS, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({ model_id: modelId }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch test predictions from API');
   }
 
   return response.json();
@@ -200,6 +282,23 @@ export const useUserActivity = () =>
   useQuery<UserActivity[]>({
     queryKey: ['userActivity'],
     queryFn: fetchUserActivity,
+    staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Cache is kept for 30 minutes
+  });
+
+export const usePredictionModels = () =>
+  useQuery<PredictionModel[]>({
+    queryKey: ['predictionModels'],
+    queryFn: fetchPredictionModels,
+    staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Cache is kept for 30 minutes
+  });
+
+export const useTestPredictions = (modelId: number | null) =>
+  useQuery<TestPrediction[]>({
+    queryKey: ['testPredictions', modelId],
+    queryFn: () => fetchTestPredictions(modelId!),
+    enabled: !!modelId,
     staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Cache is kept for 30 minutes
   });
