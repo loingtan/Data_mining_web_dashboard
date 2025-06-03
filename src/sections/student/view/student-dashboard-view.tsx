@@ -32,6 +32,7 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { generateChineseName } from 'src/utils/generateChineseName';
 import { useTestPredictions, usePredictionModels } from 'src/utils/api';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -162,7 +163,13 @@ export function StudentDashboardView({ data, studentId }: Props) {
           <Typography variant="h6" gutterBottom>
             Thông tin học viên
           </Typography>
-          <Typography>Họ tên: {courseDetail?.user_id || studentId || '-'}</Typography>
+                  <Typography>
+                      Họ tên: {
+                          (courseDetail?.user_id || studentId)
+                              ? generateChineseName(courseDetail?.user_id || studentId)
+                              : '-'
+                      }
+                  </Typography>
           <Typography>Mã học viên: {courseDetail?.user_id || studentId || '-'}</Typography>
         </CardContent>
       </Card>
