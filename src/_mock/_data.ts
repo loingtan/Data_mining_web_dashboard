@@ -208,3 +208,60 @@ export const _notifications = [
     isUnRead: false,
   },
 ];
+
+// ----------------------------------------------------------------------
+
+// Mock trend data for user activity by weeks
+export const _mockTrendData = [
+  {
+    name: 'Tuần 1',
+    video: 45, // Average video watch time in minutes
+    exercise: 12, // Average exercises completed
+    interaction: 8, // Average interactions (comments, etc.)
+  },
+  {
+    name: 'Tuần 2',
+    video: 52,
+    exercise: 15,
+    interaction: 12,
+  },
+  {
+    name: 'Tuần 3',
+    video: 38,
+    exercise: 10,
+    interaction: 6,
+  },
+  {
+    name: 'Tuần 4',
+    video: 60,
+    exercise: 18,
+    interaction: 15,
+  },
+];
+
+// Mock user activity data for weekly analysis
+export const _mockUserActivityData = [...Array(50)].map((_, index) => ({
+  user_id: `user_${index + 1}`,
+  course_id: `course_${(index % 5) + 1}`,
+  completion: Math.random() * 100,
+
+  // Week 1 data
+  total_video_watching_week1: Math.floor(Math.random() * 3600) + 1800, // 30-90 minutes in seconds
+  ex_do_week1: Math.floor(Math.random() * 20) + 5, // 5-25 exercises
+  comment_count_week1: (Math.floor(Math.random() * 15) + 2).toString(), // 2-17 comments
+
+  // Week 2 data
+  total_video_watching_week2: Math.floor(Math.random() * 4200) + 2100, // 35-105 minutes in seconds
+  ex_do_week2: Math.floor(Math.random() * 22) + 8, // 8-30 exercises
+  comment_count_week2: (Math.floor(Math.random() * 18) + 3).toString(), // 3-21 comments
+
+  // Week 3 data
+  total_video_watching_week3: Math.floor(Math.random() * 3000) + 1500, // 25-75 minutes in seconds
+  ex_do_week3: Math.floor(Math.random() * 16) + 4, // 4-20 exercises
+  comment_count_week3: (Math.floor(Math.random() * 12) + 1).toString(), // 1-13 comments
+
+  // Week 4 data
+  total_video_watching_week4: Math.floor(Math.random() * 4800) + 2400, // 40-120 minutes in seconds
+  ex_do_week4: Math.floor(Math.random() * 25) + 10, // 10-35 exercises
+  comment_count_week4: (Math.floor(Math.random() * 20) + 5).toString(), // 5-25 comments
+}));
